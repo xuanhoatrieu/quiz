@@ -29,23 +29,26 @@ const Result = ({
   }, [sfxResults])
 
   return (
-    <section className="anim-show relative mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
+    <section className="anim-show relative mx-auto my-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-4 py-4 text-center">
       {correct ? (
-        <CricleCheck className="aspect-square max-h-60 w-full" />
+        <CricleCheck className="aspect-square max-h-32 w-auto sm:max-h-44 md:max-h-52" />
       ) : (
-        <CricleXmark className="aspect-square max-h-60 w-full" />
+        <CricleXmark className="aspect-square max-h-32 w-auto sm:max-h-44 md:max-h-52" />
       )}
-      <h2 className="mt-1 text-4xl font-bold text-white drop-shadow-lg">
+      <h2 className="mt-3 text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl">
         {t(message)}
       </h2>
-      <p className="mt-1 text-xl font-bold text-white drop-shadow-lg">
+      <p className="mt-2 max-w-md rounded-xl bg-black/30 px-4 py-2 text-base font-medium text-white/95 drop-shadow-md sm:text-lg">
+        {t(correct ? "game:correctEncourage" : "game:wrongEncourage")}
+      </p>
+      <p className="mt-3 text-lg font-bold text-white drop-shadow-lg sm:text-xl">
         {t("game:resultTop")}
         {t("game:rank", { count: rank, ordinal: true })}
         {aheadOfMe ? `${t("game:resultBehind")}${aheadOfMe}` : ""}
       </p>
       {correct && (
-        <span className="mt-2 rounded-lg bg-black/40 px-4 py-2 text-2xl font-bold text-white drop-shadow-lg">
-          +{points}
+        <span className="mt-3 rounded-lg bg-black/40 px-4 py-2 text-xl font-bold text-white drop-shadow-lg sm:text-2xl">
+          +{points} {t("game:pointsUnit")}
         </span>
       )}
     </section>

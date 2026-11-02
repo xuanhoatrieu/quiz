@@ -1,7 +1,8 @@
 {
-  "answerNoted": "Cảm ơn, đã ghi nhận",
+  "answerNoted": "Đã ghi nhận câu trả lời của bạn!",
   "confirm": "Xác nhận",
-  "correct": "Chính xác!",
+  "correct": "Chính xác! Tuyệt vời!",
+  "correctEncourage": "Giữ vững phong độ ở câu tiếp theo nhé! 🌟",
   "gamePinLabel": "Mã PIN trò chơi:",
   "generatedUsernameNotice": "Bạn sẽ được đặt một biệt danh ngẫu nhiên khi tham gia.",
   "hud": {
@@ -30,8 +31,8 @@
   "rank_ordinal_other": "hạng {{count}}",
   "reconnect": "Kết nối lại",
   "reconnectTitle": "Bạn đang ở trong một trò chơi",
-  "resultBehind": ", sau ",
-  "resultTop": "Bạn xếp ",
+  "resultBehind": ", ngay sau ",
+  "resultTop": "Bạn đang xếp ",
   "settings": {
     "autoAdvance": {
       "hint": "Tự động chuyển tiếp sau khi công bố đáp án và bảng xếp hạng.",
@@ -55,10 +56,15 @@
     "participants": "Người tham gia",
     "questions": "Câu hỏi"
   },
-  "usernamePlaceholder": "Nhập tên người dùng",
-  "waitingForAnswers": "Đang chờ người chơi trả lời",
-  "waitingForPlayers": "Đang chờ người chơi",
-  "wrong": "Sai rồi",
+  "usernamePlaceholder": "Nhập tên của bạn",
+  "waitingForAnswers": "Đã ghi nhận! Cùng chờ các bạn khác trả lời nhé...",
+  "waitingForPlayers": "Đang chờ người chơi tham gia...",
+  "wrong": "Chưa chính xác rồi!",
+  "wrongEncourage": "Không sao đâu, bình tĩnh cố gắng ở câu tiếp theo nhé! 💪",
+  "pointsUnit": "điểm",
+  "finishedTitle": "Hoàn thành bài thi!",
+  "finishedEncourageTop": "Chúc mừng bạn đã xuất sắc lọt vào Top dẫn đầu! 🎉",
+  "finishedEncourageOther": "Cảm ơn bạn đã nỗ lực hoàn thành bài thi! Hẹn gặp lại ở thử thách tiếp theo nhé! 💪",
   "estimation": {
     "yourAnswer": "Câu trả lời của bạn",
     "rangeHint": "Từ {{min}} đến {{max}}"

@@ -29,7 +29,7 @@ i18n
     defaultNS: "common",
     resources,
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       caches: ["localStorage"],
     },
     interpolation: { escapeValue: false },

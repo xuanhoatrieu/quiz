@@ -2,6 +2,7 @@
   "answerNoted": "Thanks, that's noted",
   "confirm": "Confirm",
   "correct": "Nice!",
+  "correctEncourage": "Keep up the great momentum on the next question!",
   "gamePinLabel": "Game PIN:",
   "generatedUsernameNotice": "You will be given a random nickname when you join.",
   "hud": {
@@ -60,7 +61,12 @@
   "usernamePlaceholder": "Username here",
   "waitingForAnswers": "Waiting for the players to answer",
   "waitingForPlayers": "Waiting for players",
-  "wrong": "Too bad",
+  "wrong": "Not quite right",
+  "wrongEncourage": "No worries! Stay focused and you'll get the next one!",
+  "pointsUnit": "pts",
+  "finishedTitle": "Quiz completed!",
+  "finishedEncourageTop": "Congratulations on making it to the top podium!",
+  "finishedEncourageOther": "Great effort completing the quiz! Keep it up next time!",
   "estimation": {
     "yourAnswer": "Your answer",
     "rangeHint": "Between {{min}} and {{max}}"

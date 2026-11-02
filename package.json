@@ -1,6 +1,6 @@
 {
   "name": "razzia",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "type": "module",
   "packageManager": "pnpm@11.28.7",
   "engines": {

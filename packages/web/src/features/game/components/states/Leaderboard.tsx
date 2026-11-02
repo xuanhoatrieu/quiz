@@ -22,7 +22,7 @@ const AnimatedPoints = ({ from, to }: { from: number; to: number }) => {
     return unsubscribe
   }, [to, spring, display])
 
-  return <span className="drop-shadow-md">{displayValue}</span>
+  return <span className="shrink-0 drop-shadow-md">{displayValue}</span>
 }
 
 const StreakBadge = ({ streak }: { streak: number }) => {
@@ -39,9 +39,9 @@ const StreakBadge = ({ streak }: { streak: number }) => {
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
           role="img"
           aria-label={t("game:streak")}
-          className="ml-2 flex items-center gap-1 rounded-full bg-amber-700 p-1"
+          className="ml-1 flex shrink-0 items-center gap-1 rounded-full bg-amber-700 p-1 sm:ml-2"
         >
-          <Fire className="size-7" />
+          <Fire className="size-5 sm:size-7" />
         </motion.div>
       )}
     </AnimatePresence>
@@ -66,8 +66,8 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
   }, [oldLeaderboard, leaderboard])
 
   return (
-    <section className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-2">
-      <h2 className="mb-6 text-5xl font-bold text-white drop-shadow-md">
+    <section className="relative mx-auto my-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-3 py-4">
+      <h2 className="mb-4 text-center text-3xl font-bold text-white drop-shadow-md sm:mb-6 sm:text-4xl md:text-5xl">
         {t("game:leaderboard")}
       </h2>
       <div className="flex w-full flex-col gap-2">
@@ -93,10 +93,10 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
                   damping: 25,
                 },
               }}
-              className="bg-primary flex w-full justify-between rounded-xl p-3 text-3xl font-bold text-white"
+              className="bg-primary flex w-full items-center justify-between gap-3 rounded-xl p-2.5 text-xl font-bold text-white sm:p-3 sm:text-2xl md:text-3xl"
             >
-              <span className="flex items-center gap-2 drop-shadow-md">
-                {username}
+              <span className="flex min-w-0 items-center gap-2 truncate drop-shadow-md">
+                <span className="truncate">{username}</span>
                 <StreakBadge streak={streak} />
               </span>
               {isAnimating ? (
@@ -105,7 +105,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
                   to={leaderboard.find((u) => u.id === id)?.points ?? 0}
                 />
               ) : (
-                <span className="drop-shadow-md">{points}</span>
+                <span className="shrink-0 drop-shadow-md">{points}</span>
               )}
             </motion.div>
           ))}

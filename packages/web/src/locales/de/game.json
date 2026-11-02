@@ -64,5 +64,11 @@
   },
   "showQrCode": "QR-Code anzeigen",
   "streak": "Antwortserie",
-  "pinDigit": "PIN-Ziffer {{position}}"
+  "pinDigit": "PIN-Ziffer {{position}}",
+  "correctEncourage": "Keep up the great momentum on the next question!",
+  "wrongEncourage": "No worries! Stay focused and you will get the next one!",
+  "pointsUnit": "pts",
+  "finishedTitle": "Quiz completed!",
+  "finishedEncourageTop": "Congratulations on making it to the top podium!",
+  "finishedEncourageOther": "Great effort completing the quiz! Keep it up next time!"
 }

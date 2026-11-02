@@ -25,7 +25,7 @@ export const ANSWERS_LABELS = ["A", "B", "C", "D"]
 export const GAME_STATES = {
   status: {
     name: STATUS.WAIT,
-    data: { text: "Waiting for the players" },
+    data: { text: "game:waitingForPlayers" },
   },
   question: {
     current: 1,

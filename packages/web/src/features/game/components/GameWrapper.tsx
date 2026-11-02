@@ -149,11 +149,7 @@ const GameWrapper = ({
             {children}
 
             {manager ? (
-              <div
-                className={clsx("z-50 flex items-stretch gap-3 p-4", {
-                  "absolute inset-x-0 bottom-0": statusName === STATUS.FINISHED,
-                })}
-              >
+              <div className="z-50 flex items-stretch gap-3 p-4">
                 {inviteCode && statusName !== STATUS.SHOW_ROOM && (
                   <div className="flex items-center gap-3 rounded-lg bg-black/40 px-3 py-1.5 text-xl font-bold text-white drop-shadow-md">
                     {!locked && (
