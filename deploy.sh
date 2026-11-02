@@ -129,24 +129,24 @@ if [ -n "${DATABASE_URL:-}" ]; then
 DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
-    CREATE ROLE "${DB_USER}" WITH LOGIN PASSWORD '${DB_PASS}' CREATEDB;
+    CREATE USER "${DB_USER}" WITH PASSWORD '${DB_PASS}';
   ELSE
-    ALTER ROLE "${DB_USER}" WITH LOGIN PASSWORD '${DB_PASS}' CREATEDB;
+    ALTER USER "${DB_USER}" WITH PASSWORD '${DB_PASS}';
   END IF;
 END
 \$\$;
 EOSQL
 
-    # 3.2 Tạo database nếu chưa tồn tại
-    DB_EXISTS=$(docker exec -i "$PG_CONTAINER" psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'")
+    # 3.2 Tạo database nếu chưa tồn tại (chuẩn tuaf-supabase-db)
+    DB_EXISTS=$(docker exec -i "$PG_CONTAINER" psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | tr -d '[:space:]')
     if [ "$DB_EXISTS" != "1" ]; then
-      docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -c "CREATE DATABASE \"${DB_NAME}\" OWNER \"${DB_USER}\";" >/dev/null
+      docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -c "CREATE DATABASE \"${DB_NAME}\";" >/dev/null
       echo -e "${GREEN}  + Đã tạo mới database '${DB_NAME}'.${NC}"
     fi
 
     # 3.3 Cấp toàn quyền trên database và schema public
     docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"${DB_NAME}\" TO \"${DB_USER}\";" >/dev/null
-    docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d "${DB_NAME}" -c "GRANT ALL ON SCHEMA public TO \"${DB_USER}\"; ALTER SCHEMA public OWNER TO \"${DB_USER}\";" >/dev/null
+    docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d "${DB_NAME}" -c "GRANT ALL ON SCHEMA public TO \"${DB_USER}\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"${DB_USER}\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"${DB_USER}\";" >/dev/null
 
     echo -e "${GREEN}✓ Database '${DB_NAME}' & User '${DB_USER}' đã sẵn sàng 100%!${NC}"
   else
