@@ -101,5 +101,7 @@
   },
   "addAnswer": "Cevap ekle",
   "removeAnswer": "Cevabı kaldır",
-  "markCorrect": "{{label}} seçeneğini doğru olarak işaretle"
+  "markCorrect": "{{label}} seçeneğini doğru olarak işaretle",
+  "importQuestions": "Import Excel/JSON",
+  "aiGenerate": "AI Generate"
 }

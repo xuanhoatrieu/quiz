@@ -1,11 +1,10 @@
 import { createAdaptorServer } from "@hono/node-server"
 import { app, createSocketServer } from "@razzia/socket/app"
-import { initConfig } from "@razzia/socket/services/config"
+import { closeDatabase } from "@razzia/socket/services/db"
 import Registry from "@razzia/socket/services/registry"
+import { initStore } from "@razzia/socket/services/store"
 
 const WS_PORT = Number(process.env.SOCKET_PORT) || 3001
-
-initConfig()
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error)
@@ -15,20 +14,30 @@ process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason)
 })
 
-const server = createAdaptorServer({ fetch: app.fetch })
+const start = async () => {
+  await initStore()
 
-createSocketServer(server)
+  const server = createAdaptorServer({ fetch: app.fetch })
 
-server.listen(WS_PORT, () => {
-  console.log(`Server running on port ${WS_PORT}`)
-})
+  createSocketServer(server)
 
-process.on("SIGINT", () => {
-  Registry.getInstance().cleanup()
-  process.exit(0)
-})
+  server.listen(WS_PORT, () => {
+    console.log(`Server running on port ${WS_PORT}`)
+  })
 
-process.on("SIGTERM", () => {
-  Registry.getInstance().cleanup()
-  process.exit(0)
-})
+  const shutdown = async () => {
+    Registry.getInstance().cleanup()
+    await closeDatabase()
+    process.exit(0)
+  }
+
+  process.on("SIGINT", () => {
+    void shutdown()
+  })
+
+  process.on("SIGTERM", () => {
+    void shutdown()
+  })
+}
+
+void start()

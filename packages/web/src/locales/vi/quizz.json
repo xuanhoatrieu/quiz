@@ -101,5 +101,7 @@
   },
   "addAnswer": "Thêm câu trả lời",
   "removeAnswer": "Xóa câu trả lời",
-  "markCorrect": "Đánh dấu {{label}} là đúng"
+  "markCorrect": "Đánh dấu {{label}} là đúng",
+  "importQuestions": "Nhập Excel/JSON",
+  "aiGenerate": "Tạo bằng AI"
 }

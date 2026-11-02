@@ -11,7 +11,18 @@
     "tokenMissing": "Brak tokenu sesji",
     "unauthorized": "Nie masz uprawnień",
     "usernameTooLong": "Nazwa użytkownika nie może mieć więcej niż 24 znaki",
-    "usernameTooShort": "Nazwa użytkownika nie może być pusta"
+    "usernameTooShort": "Nazwa użytkownika nie może być pusta",
+    "accountDisabled": "To konto zostało zablokowane przez administratora",
+    "accountUsernameInvalid": "Nazwa użytkownika musi mieć 3–48 znaków (litery, cyfry, ., _, -, @)",
+    "displayNameRequired": "Nazwa wyświetlana nie może być pusta",
+    "displayNameTooLong": "Nazwa wyświetlana nie może przekraczać 64 znaków",
+    "invalidCredentials": "Nieprawidłowa nazwa użytkownika lub hasło",
+    "inviteDisabled": "Samodzielna rejestracja jest obecnie wyłączona",
+    "passwordTooLong": "Hasło nie może przekraczać 128 znaków",
+    "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków",
+    "teacherInviteInvalid": "Nieprawidłowy kod zaproszenia",
+    "tooManyAttempts": "Zbyt wiele prób, odczekaj minutę i spróbuj ponownie",
+    "usernameTaken": "Ta nazwa użytkownika jest już zajęta"
   },
   "game": {
     "alreadyStarted": "Gra już się rozpoczęła",
@@ -75,5 +86,19 @@
     "notFound": "Nie znaleziono pliku multimedialnego",
     "tooLarge": "Plik jest za duży",
     "uploadFailed": "Nie udało się przesłać pliku"
+  },
+  "admin": {
+    "cannotModifySelf": "Nie możesz wykonać tej akcji na własnym koncie",
+    "userNotFound": "Nie znaleziono konta"
+  },
+  "ai": {
+    "disabled": "AI question generation is currently disabled",
+    "invalidBaseUrl": "AI Provider Base URL is invalid or not allowed",
+    "missingConfig": "AI Provider API key is not configured",
+    "topicTooShort": "Topic must be between 2 and 300 characters",
+    "sourceTooLong": "Reference material cannot exceed 12,000 characters",
+    "invalidCount": "Question count must be between 1 and 20",
+    "providerFailed": "Failed to reach the AI provider, please check configuration or try again",
+    "invalidOutput": "AI returned an invalid quiz format, please try generating again"
   }
 }

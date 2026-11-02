@@ -1,40 +1,47 @@
-import type { QuizzValidated } from "@razzia/common/validators/quizz"
+import {
+  exportQuizzToJsonString,
+  exportQuizzToXlsxBytes,
+} from "@razzia/common/quizz-io"
+import type { Quizz } from "@razzia/common/types/game"
 import AlertDialog from "@razzia/web/components/AlertDialog"
 import Button from "@razzia/web/components/Button"
 import { SkeletonRows } from "@razzia/web/components/Skeleton"
+import AiGenerateModal from "@razzia/web/features/manager/components/AiGenerateModal"
+import ImportQuizzModal, {
+  downloadBytesAsFile,
+  downloadTextAsFile,
+  XLSX_MIME_TYPE,
+} from "@razzia/web/features/manager/components/ImportQuizzModal"
 import {
+  aiStatusQuery,
   createQuizz,
   deleteQuizz,
   quizzKeys,
   quizzListQuery,
 } from "@razzia/web/features/manager/queries"
+import { useQuizzDraftStore } from "@razzia/web/features/quizz/stores/quizz-draft"
 import { api, ApiError, unwrap } from "@razzia/web/lib/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { Download, SquarePen, Trash2, Upload } from "lucide-react"
-import { type ChangeEvent, useRef } from "react"
+import {
+  Download,
+  FileJson,
+  FileSpreadsheet,
+  Sparkles,
+  SquarePen,
+  Trash2,
+  Upload,
+} from "lucide-react"
+import { DropdownMenu as RadixDropdown } from "radix-ui"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
-const downloadJson = (data: unknown, filename: string) => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-
-  a.href = url
-  a.download = filename
-  a.click()
-
-  URL.revokeObjectURL(url)
-}
-
 const ConfigManageQuizz = () => {
   const { data, isPending } = useQuery(quizzListQuery())
+  const { data: aiStatus } = useQuery(aiStatusQuery())
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const setDraft = useQuizzDraftStore((state) => state.setDraft)
   const { t } = useTranslation()
 
   const invalidate = () =>
@@ -53,7 +60,7 @@ const ConfigManageQuizz = () => {
     onError: (error) => onError(error, "errors:quizz.failedToDelete"),
   })
 
-  const { mutate: importQuizz } = useMutation({
+  const { mutate: saveImportedQuizz, isPending: isSavingImport } = useMutation({
     mutationFn: createQuizz,
     onSuccess: () => {
       invalidate()
@@ -62,67 +69,85 @@ const ConfigManageQuizz = () => {
     onError: (error) => onError(error, "errors:quizz.failedToSave"),
   })
 
-  const handleExport = (id: string) => async () => {
+  const handleOpenInEditor = (draftQuizz: Quizz) => {
+    setDraft(draftQuizz)
+    void navigate({ to: "/manager/quizz" })
+  }
+
+  const handleCreateBlank = () => {
+    setDraft(null)
+    void navigate({ to: "/manager/quizz" })
+  }
+
+  const handleExportFormat = async (id: string, format: "xlsx" | "json") => {
     try {
-      const { id: _id, ...quizz } = await unwrap(
+      const { id: _id, ...quizzData } = await unwrap(
         api.quizz[":id"].$get({ param: { id } }),
       )
 
-      downloadJson(quizz, `${quizz.subject}.json`)
+      if (format === "xlsx") {
+        const bytes = await exportQuizzToXlsxBytes(quizzData)
+        downloadBytesAsFile(bytes, `${quizzData.subject}.xlsx`, XLSX_MIME_TYPE)
+
+        return
+      }
+
+      downloadTextAsFile(
+        exportQuizzToJsonString(quizzData),
+        `${quizzData.subject}.json`,
+        "application/json",
+      )
     } catch (error) {
       onError(error as Error, "errors:quizz.notFound")
     }
-  }
-
-  const handleImport = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    const reader = new FileReader()
-
-    reader.onload = (event) => {
-      try {
-        importQuizz(
-          JSON.parse(event.target?.result as string) as QuizzValidated,
-        )
-      } catch {
-        toast.error("Invalid JSON file")
-      }
-    }
-
-    reader.readAsText(file)
-    e.target.value = ""
   }
 
   const quizz = data?.quizz ?? []
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="mb-4 flex shrink-0 gap-2">
-        <Button
-          className="flex-1"
-          onClick={() => navigate({ to: "/manager/quizz" })}
-        >
+      <div className="mb-4 flex shrink-0 gap-1.5">
+        <Button className="min-w-0 flex-1 px-3" onClick={handleCreateBlank}>
           {t("manager:quizz.create")}
         </Button>
-        <Button
-          className="bg-accent text-accent-foreground aspect-square px-3"
-          onClick={() => fileInputRef.current?.click()}
-          title={t("manager:quizz.import")}
-        >
-          <Upload className="size-4" />
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          className="hidden"
-          onChange={handleImport}
+
+        {aiStatus?.enabled && (
+          <AiGenerateModal
+            mode="create"
+            modelName={aiStatus.model}
+            isSaving={isSavingImport}
+            onSaveNew={(validated) => saveImportedQuizz(validated)}
+            onOpenInEditor={handleOpenInEditor}
+            trigger={
+              <Button
+                className="bg-accent text-primary hover:bg-primary/15 shrink-0 px-3 text-sm font-semibold"
+                title={t("manager:aiModal.trigger")}
+              >
+                <Sparkles className="size-4" />
+                <span className="hidden sm:inline">
+                  {t("manager:aiModal.trigger")}
+                </span>
+              </Button>
+            }
+          />
+        )}
+
+        <ImportQuizzModal
+          mode="create"
+          isSaving={isSavingImport}
+          onSaveNew={(validated) => saveImportedQuizz(validated)}
+          onOpenInEditor={handleOpenInEditor}
+          trigger={
+            <Button
+              className="bg-accent text-accent-foreground aspect-square shrink-0 px-3"
+              title={t("manager:quizz.import")}
+            >
+              <Upload className="size-4" />
+            </Button>
+          }
         />
       </div>
+
       <div className="min-h-0 flex-1 space-y-2 overflow-auto p-0.5">
         {isPending && <SkeletonRows className="h-12" />}
 
@@ -134,6 +159,7 @@ const ConfigManageQuizz = () => {
             <p className="text-foreground truncate font-medium">{q.subject}</p>
             <div className="flex gap-0.5">
               <button
+                type="button"
                 className="text-accent-foreground hover:bg-accent-foreground/10 rounded-sm p-2"
                 title={t("manager:quizz.edit")}
                 onClick={() =>
@@ -146,17 +172,45 @@ const ConfigManageQuizz = () => {
                 <SquarePen className="size-4" />
               </button>
 
-              <button
-                className="text-accent-foreground hover:bg-accent-foreground/10 rounded-sm p-2"
-                onClick={() => handleExport(q.id)()}
-                title={t("manager:quizz.export")}
-              >
-                <Download className="size-4" />
-              </button>
+              <RadixDropdown.Root>
+                <RadixDropdown.Trigger asChild>
+                  <button
+                    type="button"
+                    className="text-accent-foreground hover:bg-accent-foreground/10 rounded-sm p-2"
+                    title={t("manager:quizz.export")}
+                  >
+                    <Download className="size-4" />
+                  </button>
+                </RadixDropdown.Trigger>
+
+                <RadixDropdown.Portal>
+                  <RadixDropdown.Content
+                    align="end"
+                    sideOffset={4}
+                    className="border-accent bg-background z-50 min-w-44 rounded-lg border p-1 shadow-lg"
+                  >
+                    <RadixDropdown.Item
+                      onSelect={() => void handleExportFormat(q.id, "xlsx")}
+                      className="text-foreground hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-xs font-medium outline-none"
+                    >
+                      <FileSpreadsheet className="text-primary size-4" />
+                      {t("manager:quizz.exportExcel")}
+                    </RadixDropdown.Item>
+                    <RadixDropdown.Item
+                      onSelect={() => void handleExportFormat(q.id, "json")}
+                      className="text-foreground hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-xs font-medium outline-none"
+                    >
+                      <FileJson className="text-muted-foreground size-4" />
+                      {t("manager:quizz.exportJson")}
+                    </RadixDropdown.Item>
+                  </RadixDropdown.Content>
+                </RadixDropdown.Portal>
+              </RadixDropdown.Root>
 
               <AlertDialog
                 trigger={
                   <button
+                    type="button"
                     className="rounded-sm p-2 hover:bg-red-600/10"
                     title={t("manager:quizz.delete")}
                   >
@@ -173,6 +227,7 @@ const ConfigManageQuizz = () => {
             </div>
           </div>
         ))}
+
         {!isPending && quizz.length === 0 && (
           <p className="text-muted-foreground my-8 text-center">
             {t("manager:quizz.none")}

@@ -11,7 +11,18 @@
     "tokenMissing": "Jeton de session manquant",
     "unauthorized": "Vous n'êtes pas autorisé",
     "usernameTooLong": "Le pseudo ne peut pas dépasser 24 caractères",
-    "usernameTooShort": "Le pseudo ne peut pas être vide"
+    "usernameTooShort": "Le pseudo ne peut pas être vide",
+    "accountDisabled": "Ce compte a été désactivé par un administrateur",
+    "accountUsernameInvalid": "L'identifiant doit contenir 3 à 48 caractères (lettres, chiffres, ., _, -, @)",
+    "displayNameRequired": "Le nom affiché ne peut pas être vide",
+    "displayNameTooLong": "Le nom affiché ne peut pas dépasser 64 caractères",
+    "invalidCredentials": "Identifiant ou mot de passe incorrect",
+    "inviteDisabled": "L'inscription par code est actuellement désactivée",
+    "passwordTooLong": "Le mot de passe ne peut pas dépasser 128 caractères",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "teacherInviteInvalid": "Code d'invitation enseignant invalide",
+    "tooManyAttempts": "Trop de tentatives, veuillez patienter une minute avant de réessayer",
+    "usernameTaken": "Cet identifiant est déjà utilisé"
   },
   "game": {
     "alreadyStarted": "La partie a déjà commencé",
@@ -75,5 +86,19 @@
     "notFound": "Média introuvable",
     "tooLarge": "Le fichier est trop volumineux",
     "uploadFailed": "Échec de l'import du fichier"
+  },
+  "admin": {
+    "cannotModifySelf": "Vous ne pouvez pas effectuer cette action sur votre propre compte",
+    "userNotFound": "Compte introuvable"
+  },
+  "ai": {
+    "disabled": "AI question generation is currently disabled",
+    "invalidBaseUrl": "AI Provider Base URL is invalid or not allowed",
+    "missingConfig": "AI Provider API key is not configured",
+    "topicTooShort": "Topic must be between 2 and 300 characters",
+    "sourceTooLong": "Reference material cannot exceed 12,000 characters",
+    "invalidCount": "Question count must be between 1 and 20",
+    "providerFailed": "Failed to reach the AI provider, please check configuration or try again",
+    "invalidOutput": "AI returned an invalid quiz format, please try generating again"
   }
 }

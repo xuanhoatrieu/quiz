@@ -11,11 +11,11 @@ import {
   type Status,
   type StatusDataMap,
 } from "@razzia/common/types/game/status"
-import { saveResult } from "@razzia/socket/services/config"
 import { CooldownTimer } from "@razzia/socket/services/game/cooldown-timer"
 import { PlayerManager } from "@razzia/socket/services/game/player-manager"
 import { RoundManager } from "@razzia/socket/services/game/round-manager"
 import Registry from "@razzia/socket/services/registry"
+import { recordResultForOwner } from "@razzia/socket/services/store"
 import { createInviteCode } from "@razzia/socket/utils/game"
 import { createNickname } from "@razzia/socket/utils/nickname"
 import { SECOND_MS } from "@razzia/socket/utils/sleep"
@@ -92,7 +92,9 @@ class Game {
         this.playerStatus.clear()
         this.managerStatus = null
       },
-      onGameFinished: saveResult,
+      onGameFinished: (result) => {
+        void recordResultForOwner(result, this._manager.clientId)
+      },
       getSettings: () => this._settings,
     })
 

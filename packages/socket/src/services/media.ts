@@ -105,10 +105,14 @@ export const saveMedia = async (file: File): Promise<UploadedMedia> => {
   return toUploadedMedia(name, type)
 }
 
-export const deleteMedia = (name: string): void => {
+export const assertValidMediaName = (name: string): void => {
   if (!MEDIA_NAME_PATTERN.test(name)) {
     throw invalidInput("errors:media.invalidName")
   }
+}
+
+export const deleteMedia = (name: string): void => {
+  assertValidMediaName(name)
 
   const path = join(getMediaDir(), name)
 

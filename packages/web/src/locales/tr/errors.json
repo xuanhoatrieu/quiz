@@ -11,7 +11,18 @@
     "tokenMissing": "Oturum belirteci eksik",
     "unauthorized": "Yetkiniz yok",
     "usernameTooLong": "Kullanıcı adı 24 karakteri geçemez",
-    "usernameTooShort": "Kullanıcı adı boş olamaz"
+    "usernameTooShort": "Kullanıcı adı boş olamaz",
+    "accountDisabled": "Bu hesap yönetici tarafından devre dışı bırakıldı",
+    "accountUsernameInvalid": "Kullanıcı adı 3–48 karakter olmalıdır (harf, rakam, ., _, -, @)",
+    "displayNameRequired": "Görünen ad boş olamaz",
+    "displayNameTooLong": "Görünen ad 64 karakteri geçemez",
+    "invalidCredentials": "Geçersiz kullanıcı adı veya şifre",
+    "inviteDisabled": "Davet kodu ile kayıt şu anda kapalı",
+    "passwordTooLong": "Şifre 128 karakteri geçemez",
+    "passwordTooShort": "Şifre en az 8 karakter olmalıdır",
+    "teacherInviteInvalid": "Geçersiz davet kodu",
+    "tooManyAttempts": "Çok fazla deneme yapıldı, lütfen bir dakika bekleyin",
+    "usernameTaken": "Bu kullanıcı adı zaten alınmış"
   },
   "game": {
     "alreadyStarted": "Oyun zaten başladı",
@@ -75,5 +86,19 @@
     "notFound": "Medya bulunamadı",
     "tooLarge": "Dosya çok büyük",
     "uploadFailed": "Dosya yüklenemedi"
+  },
+  "admin": {
+    "cannotModifySelf": "Bu işlemi kendi hesabınız üzerinde yapamazsınız",
+    "userNotFound": "Hesap bulunamadı"
+  },
+  "ai": {
+    "disabled": "AI question generation is currently disabled",
+    "invalidBaseUrl": "AI Provider Base URL is invalid or not allowed",
+    "missingConfig": "AI Provider API key is not configured",
+    "topicTooShort": "Topic must be between 2 and 300 characters",
+    "sourceTooLong": "Reference material cannot exceed 12,000 characters",
+    "invalidCount": "Question count must be between 1 and 20",
+    "providerFailed": "Failed to reach the AI provider, please check configuration or try again",
+    "invalidOutput": "AI returned an invalid quiz format, please try generating again"
   }
 }

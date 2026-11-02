@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { QUESTION_TYPES, QUIZZ_MODES } from "@razzia/common/constants"
 import type {
   Question,
+  Quizz,
   QuizzMode,
   QuizzWithId,
 } from "@razzia/common/types/game"
@@ -41,6 +42,7 @@ interface QuizzEditorContextType {
   isRemoving: boolean
   setCurrentIndex: (_index: number) => void
   addQuestion: () => void
+  appendQuestions: (_incoming: Question[], _incomingSubject?: string) => void
   removeQuestion: (_index: number) => void
   reorderQuestions: (_from: number, _to: number) => void
   updateQuestion: (_index: number, _updates: Partial<Question>) => void
@@ -64,7 +66,7 @@ const clampIndex = (index: number, length: number) =>
   Math.max(0, Math.min(index, length - 1))
 
 type QuizzEditorProviderProps = PropsWithChildren<{
-  initialData?: QuizzWithId
+  initialData?: Quizz | QuizzWithId
 }>
 
 export const QuizzEditorProvider = ({
@@ -81,7 +83,7 @@ export const QuizzEditorProvider = ({
   })
 
   const { control, getValues, setValue, formState } = form
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, move, replace } = useFieldArray({
     control,
     name: "questions",
   })
@@ -99,6 +101,38 @@ export const QuizzEditorProvider = ({
 
     append({ ...defaultQuestion(), ...(category ? { category } : {}) })
     setCurrentIndex(questions.length)
+  }
+
+  const appendQuestions = (incoming: Question[], incomingSubject?: string) => {
+    if (incoming.length === 0) {
+      return
+    }
+
+    const currentSubject = getValues("subject").trim()
+
+    if (
+      incomingSubject &&
+      incomingSubject.trim().length > 0 &&
+      (currentSubject.length === 0 || currentSubject === "Untitled Quizz")
+    ) {
+      setValue("subject", incomingSubject.trim(), { shouldDirty: true })
+    }
+
+    const isSingleBlankStarter =
+      questions.length === 1 &&
+      questions[0].question.trim().length === 0 &&
+      questions[0].answers.every((ans) => ans.trim().length === 0)
+
+    if (isSingleBlankStarter) {
+      replace(incoming)
+      setCurrentIndex(0)
+
+      return
+    }
+
+    const firstNewIdx = questions.length
+    append(incoming)
+    setCurrentIndex(firstNewIdx)
   }
 
   const removeQuestion = (index: number) => {
@@ -138,7 +172,7 @@ export const QuizzEditorProvider = ({
     <FormProvider {...form}>
       <QuizzEditorContext.Provider
         value={{
-          quizzId: initialData?.id ?? null,
+          quizzId: initialData && "id" in initialData ? initialData.id : null,
           gameMode,
           questions,
           questionIds,
@@ -148,6 +182,7 @@ export const QuizzEditorProvider = ({
           isRemoving: removingFrom === questions,
           setCurrentIndex,
           addQuestion,
+          appendQuestions,
           removeQuestion,
           reorderQuestions,
           updateQuestion,

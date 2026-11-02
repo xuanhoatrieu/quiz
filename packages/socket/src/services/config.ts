@@ -77,7 +77,15 @@ const requireFileById = (subDir: string, id: string, key: string): string => {
   return file
 }
 
+let resetHook: (() => void) | null = null
+
+export const registerConfigResetHook = (hook: () => void): void => {
+  resetHook = hook
+}
+
 export const initConfig = () => {
+  resetHook?.()
+
   const isConfigFolderExists = fs.existsSync(getPath())
 
   if (!isConfigFolderExists) {

@@ -2,13 +2,13 @@
 @import "tailwindcss-animated";
 
 @theme {
-  --color-primary: #ff9900;
-  --color-secondary: #1a140b;
-  --color-answer-1: #e69f00;
-  --color-answer-2: #56b4e9;
-  --color-answer-3: #3dbfa0;
-  --color-answer-4: #cc79a7;
-  --color-correct: var(--color-green-500);
+  --color-primary: #15803d;
+  --color-secondary: #071e12;
+  --color-answer-1: #15803d;
+  --color-answer-2: #0369a1;
+  --color-answer-3: #d97706;
+  --color-answer-4: #be123c;
+  --color-correct: #16a34a;
 
   --color-background: var(--color-white);
 

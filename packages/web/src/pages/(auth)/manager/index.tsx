@@ -1,9 +1,12 @@
-import { SESSION_ROLES } from "@razzia/common/constants"
 import ManagerPassword from "@razzia/web/features/manager/components/ManagerPassword"
-import { managerLogin } from "@razzia/web/features/manager/queries"
+import {
+  accountLogin,
+  accountRegister,
+  inviteStatusQuery,
+} from "@razzia/web/features/manager/queries"
 import { ApiError } from "@razzia/web/lib/api"
-import { getRole, setToken } from "@razzia/web/lib/session"
-import { useMutation } from "@tanstack/react-query"
+import { isManagerSession, setToken } from "@razzia/web/lib/session"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
@@ -11,26 +14,47 @@ import { useTranslation } from "react-i18next"
 const ManagerAuthPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { data: inviteStatus } = useQuery(inviteStatusQuery())
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: managerLogin,
-    onSuccess: (session) => {
-      setToken(session.token)
-      navigate({ to: "/manager/config" })
-    },
-    onError: (error) => {
-      toast.error(
-        t(error instanceof ApiError ? error.key : "errors:route.description"),
-      )
-    },
+  const handleSuccess = (session: { token: string }) => {
+    setToken(session.token)
+    navigate({ to: "/manager/config" })
+  }
+
+  const handleError = (error: unknown) => {
+    toast.error(
+      t(error instanceof ApiError ? error.key : "errors:route.description"),
+    )
+  }
+
+  const loginMutation = useMutation({
+    mutationFn: accountLogin,
+    onSuccess: handleSuccess,
+    onError: handleError,
   })
 
-  return <ManagerPassword onSubmit={mutate} disabled={isPending} />
+  const registerMutation = useMutation({
+    mutationFn: accountRegister,
+    onSuccess: (session) => {
+      toast.success(t("manager:auth.registerSuccess"))
+      handleSuccess(session)
+    },
+    onError: handleError,
+  })
+
+  return (
+    <ManagerPassword
+      inviteEnabled={Boolean(inviteStatus?.enabled)}
+      onLogin={(data) => loginMutation.mutate(data)}
+      onRegister={(data) => registerMutation.mutate(data)}
+      disabled={loginMutation.isPending || registerMutation.isPending}
+    />
+  )
 }
 
 export const Route = createFileRoute("/(auth)/manager/")({
   beforeLoad: () => {
-    if (getRole() === SESSION_ROLES.MANAGER) {
+    if (isManagerSession()) {
       // oxlint-disable-next-line typescript/only-throw-error
       throw redirect({ to: "/manager/config" })
     }

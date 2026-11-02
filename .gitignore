@@ -4,3 +4,6 @@
 .secrets
 release.json
 /coverage
+harness.db
+harness.db-*
+.brain/scratchpad.json

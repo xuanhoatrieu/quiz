@@ -95,4 +95,30 @@ describe("session", () => {
 
     await expect(ensureSession()).rejects.toThrow("errors:auth.sessionFailed")
   })
+
+  it("decodes UTF-8 Vietnamese account profiles for admin and manager roles", async () => {
+    storage.set(
+      "token",
+      createToken({
+        sub: "user-1",
+        role: SESSION_ROLES.ADMIN,
+        ver: 1,
+        username: "admin",
+        displayName: "Quản trị Hệ thống",
+        exp: now() + 3600,
+      }),
+    )
+
+    const { getAccountProfile, isAdminSession, isManagerSession } =
+      await loadSession()
+
+    expect(isManagerSession()).toBe(true)
+    expect(isAdminSession()).toBe(true)
+    expect(getAccountProfile()).toEqual({
+      id: "user-1",
+      role: SESSION_ROLES.ADMIN,
+      username: "admin",
+      displayName: "Quản trị Hệ thống",
+    })
+  })
 })

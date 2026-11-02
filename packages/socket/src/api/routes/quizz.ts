@@ -4,27 +4,40 @@ import { apiFactory } from "@razzia/socket/api/factory"
 import { requireManager } from "@razzia/socket/api/middleware"
 import { i18nHook } from "@razzia/socket/api/validation"
 import {
-  deleteQuizz,
-  getQuizzById,
-  getQuizzMeta,
-  saveQuizz,
-  updateQuizz,
-} from "@razzia/socket/services/config"
+  createQuizzForOwner,
+  deleteQuizzForOwner,
+  getQuizzByIdForOwner,
+  listQuizzMetaForOwner,
+  updateQuizzForOwner,
+} from "@razzia/socket/services/store"
 import { StatusCodes } from "http-status-codes"
 
 const routes = apiFactory
   .createApp()
   .use(requireManager)
-  .get("/", (c) => c.json({ quizz: getQuizzMeta() }))
-  .get("/:id", (c) => c.json(getQuizzById(c.req.param("id"))))
-  .post("/", zValidator("json", quizzValidator, i18nHook), (c) =>
-    c.json(saveQuizz(c.req.valid("json")), StatusCodes.CREATED),
+  .get("/", async (c) =>
+    c.json({ quizz: await listQuizzMetaForOwner(c.get("claims").sub) }),
   )
-  .patch("/:id", zValidator("json", quizzValidator, i18nHook), (c) =>
-    c.json(updateQuizz(c.req.param("id"), c.req.valid("json"))),
+  .get("/:id", async (c) =>
+    c.json(await getQuizzByIdForOwner(c.req.param("id"), c.get("claims").sub)),
   )
-  .delete("/:id", (c) => {
-    deleteQuizz(c.req.param("id"))
+  .post("/", zValidator("json", quizzValidator, i18nHook), async (c) =>
+    c.json(
+      await createQuizzForOwner(c.req.valid("json"), c.get("claims").sub),
+      StatusCodes.CREATED,
+    ),
+  )
+  .patch("/:id", zValidator("json", quizzValidator, i18nHook), async (c) =>
+    c.json(
+      await updateQuizzForOwner(
+        c.req.param("id"),
+        c.req.valid("json"),
+        c.get("claims").sub,
+      ),
+    ),
+  )
+  .delete("/:id", async (c) => {
+    await deleteQuizzForOwner(c.req.param("id"), c.get("claims").sub)
 
     return c.body(null, StatusCodes.NO_CONTENT)
   })

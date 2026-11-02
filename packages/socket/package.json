@@ -16,6 +16,7 @@
     "hono": "catalog:",
     "http-status-codes": "catalog:",
     "nanoid": "^6.0.2",
+    "postgres": "^3.4.9",
     "socket.io": "catalog:",
     "typescript": "catalog:",
     "uuid": "catalog:",

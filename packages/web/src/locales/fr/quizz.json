@@ -101,5 +101,7 @@
   },
   "addAnswer": "Ajouter une réponse",
   "removeAnswer": "Retirer une réponse",
-  "markCorrect": "Marquer {{label}} comme bonne réponse"
+  "markCorrect": "Marquer {{label}} comme bonne réponse",
+  "importQuestions": "Import Excel/JSON",
+  "aiGenerate": "AI Generate"
 }

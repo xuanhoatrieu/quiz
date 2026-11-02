@@ -41,7 +41,16 @@ export const EVENTS = {
 export const SESSION_ROLES = {
   PLAYER: "player",
   MANAGER: "manager",
+  ADMIN: "admin",
 } as const
+
+export const ACCOUNT_ROLES = {
+  MANAGER: SESSION_ROLES.MANAGER,
+  ADMIN: SESSION_ROLES.ADMIN,
+} as const
+
+export const isManagerRole = (role?: string | null): boolean =>
+  role === SESSION_ROLES.MANAGER || role === SESSION_ROLES.ADMIN
 
 export const NO_TIME_LIMIT = -1
 

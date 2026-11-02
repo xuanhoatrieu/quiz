@@ -12,7 +12,7 @@ COPY packages/web/package.json ./packages/web/
 COPY packages/socket/package.json ./packages/socket/
 COPY packages/e2e/package.json ./packages/e2e/
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -24,11 +24,15 @@ FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c
 RUN apk upgrade --no-cache && apk add --no-cache nginx nodejs s6
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY --chmod=755 docker/s6 /etc/s6
+COPY docker/s6 /etc/s6
+RUN chmod -R 755 /etc/s6
 
 COPY --from=builder /app/packages/web/dist /app/web
 COPY --from=builder /app/packages/socket/dist/index.cjs /app/socket/index.cjs
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/health >/dev/null || exit 1
 
 CMD ["s6-svscan", "/etc/s6"]

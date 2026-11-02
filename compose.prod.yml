@@ -1,0 +1,43 @@
+# ==============================================================================
+# Production Docker Compose — Quiz Live Interactive Platform
+# Compliant with TUAF Production Architecture (production.md):
+# - Fixed container_name: quiz-web
+# - Connects to shared PostgreSQL via external Docker network (`tuaf-ai-network`)
+# - No public 0.0.0.0 ports exposed (proxied via `tuaf-nginx` or host loopback)
+# - Built-in /health endpoint + container healthcheck
+# ==============================================================================
+
+services:
+  quiz-web:
+    image: ghcr.io/${GHCR_OWNER:-xuanhoatrieu}/quiz:${IMAGE_TAG:-latest}
+    # Uncomment `build: .` if building directly on the host instead of pulling GHCR:
+    # build: .
+    container_name: quiz-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Verified conflict-free port on Production Server 10.64.11.109 (Cloudflare Tunnel: http://10.64.11.109:3600)
+    ports:
+      - "${QUIZ_PORT:-3600}:3000"
+    volumes:
+      - quiz-config:/app/config
+    networks:
+      - tuaf-ai-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:3000/health >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  quiz-config:
+    name: quiz-config
+
+networks:
+  tuaf-ai-network:
+    external: true

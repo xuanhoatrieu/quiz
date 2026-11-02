@@ -1,4 +1,4 @@
-import { SESSION_ROLES } from "@razzia/common/constants"
+import { isManagerRole, SESSION_ROLES } from "@razzia/common/constants"
 import type {
   SessionClaims,
   SessionResponse,
@@ -30,6 +30,15 @@ removeStorage("client_id")
 
 let memoryToken: string | null = null
 
+const decodeBase64UrlUtf8 = (input: string): string => {
+  const normalized = input.replace(/-/gu, "+").replace(/_/gu, "/")
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")
+  const binary = atob(padded)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+
+  return new TextDecoder().decode(bytes)
+}
+
 const decodeClaims = (token: string): SessionClaims | null => {
   try {
     const [, payload] = token.split(".")
@@ -38,7 +47,7 @@ const decodeClaims = (token: string): SessionClaims | null => {
       return null
     }
 
-    const json = atob(payload.replace(/-/gu, "+").replace(/_/gu, "/"))
+    const json = decodeBase64UrlUtf8(payload)
     const claims = JSON.parse(json) as SessionClaims
 
     if (typeof claims.sub !== "string" || typeof claims.exp !== "number") {
@@ -90,6 +99,36 @@ export const getRole = (): SessionRole => {
   return getClaims()?.role ?? SESSION_ROLES.PLAYER
 }
 
+export const isManagerSession = (): boolean => isManagerRole(getRole())
+
+export const isAdminSession = (): boolean => getRole() === SESSION_ROLES.ADMIN
+
+export interface AccountProfile {
+  id: string
+  role: SessionRole
+  username?: string
+  displayName?: string
+}
+
+export const getAccountProfile = (): AccountProfile | null => {
+  if (isExpired()) {
+    return null
+  }
+
+  const claims = getClaims()
+
+  if (!claims || !isManagerRole(claims.role)) {
+    return null
+  }
+
+  return {
+    id: claims.sub,
+    role: claims.role,
+    username: claims.username,
+    displayName: claims.displayName,
+  }
+}
+
 const requestSession = async (token: string | null) => {
   const response = await fetch("/api/auth/session", {
     method: "POST",
@@ -120,6 +159,8 @@ export const ensureSession = (): Promise<SessionResponse> => {
       clientId: claims.sub,
       role: claims.role,
       expiresAt: claims.exp,
+      ...(claims.username ? { username: claims.username } : {}),
+      ...(claims.displayName ? { displayName: claims.displayName } : {}),
     })
   }
 

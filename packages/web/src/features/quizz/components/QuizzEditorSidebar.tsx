@@ -17,14 +17,18 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import Button from "@razzia/web/components/Button"
+import AiGenerateModal from "@razzia/web/features/manager/components/AiGenerateModal"
+import ImportQuizzModal from "@razzia/web/features/manager/components/ImportQuizzModal"
+import { aiStatusQuery } from "@razzia/web/features/manager/queries"
 import QuizzEditorCard from "@razzia/web/features/quizz/components/QuizzEditorCard"
 import type { Question } from "@razzia/common/types/game"
 import {
   useQuizzEditor,
   type QuizzFormValues,
 } from "@razzia/web/features/quizz/contexts/quizz-editor-context"
+import { useQuery } from "@tanstack/react-query"
 import clsx from "clsx"
-import { Plus } from "lucide-react"
+import { Plus, Sparkles, Upload } from "lucide-react"
 import { useRef } from "react"
 import { useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -87,9 +91,11 @@ const QuizzEditorSidebar = () => {
     currentIndex,
     setCurrentIndex,
     addQuestion,
+    appendQuestions,
     removeQuestion,
     reorderQuestions,
   } = useQuizzEditor()
+  const { data: aiStatus } = useQuery(aiStatusQuery())
   const {
     formState: { errors },
   } = useFormContext<QuizzFormValues>()
@@ -159,11 +165,44 @@ const QuizzEditorSidebar = () => {
 
       <Button
         onClick={addQuestion}
-        className="bg text-md bg-accent text-accent-foreground mt-1 mb-8 flex items-center justify-center gap-1"
+        className="bg text-md bg-accent text-accent-foreground mt-1 flex items-center justify-center gap-1"
       >
         <Plus className="size-6" />
         {t("quizz:addQuestion")}
       </Button>
+
+      <div className="mb-8 flex gap-1.5">
+        <ImportQuizzModal
+          mode="append"
+          onAppend={appendQuestions}
+          trigger={
+            <button
+              type="button"
+              className="border-accent bg-muted/50 text-foreground hover:bg-accent flex flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors"
+            >
+              <Upload className="size-3.5 shrink-0" />
+              <span className="truncate">{t("quizz:importQuestions")}</span>
+            </button>
+          }
+        />
+
+        {aiStatus?.enabled && (
+          <AiGenerateModal
+            mode="append"
+            modelName={aiStatus.model}
+            onAppend={appendQuestions}
+            trigger={
+              <button
+                type="button"
+                className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 flex flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors"
+              >
+                <Sparkles className="size-3.5 shrink-0" />
+                <span className="truncate">{t("quizz:aiGenerate")}</span>
+              </button>
+            }
+          />
+        )}
+      </div>
     </aside>
   )
 }

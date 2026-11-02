@@ -1,13 +1,15 @@
 import type { ServerType } from "@hono/node-server"
-import { EVENTS } from "@razzia/common/constants"
+import { EVENTS, isManagerRole } from "@razzia/common/constants"
 import type { Server } from "@razzia/common/types/game/socket"
 import { clientEventValidators } from "@razzia/common/validators/socket"
 import { api } from "@razzia/socket/api"
 import { gameSocketHandlers } from "@razzia/socket/handlers/game"
 import type { SocketHandler } from "@razzia/socket/handlers/types"
 import { verifyToken } from "@razzia/socket/services/auth"
+import { pingDatabase } from "@razzia/socket/services/db"
 import { DomainError } from "@razzia/socket/services/errors"
 import { setIo } from "@razzia/socket/services/io"
+import { validateSessionUser } from "@razzia/socket/services/store"
 import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
 import { JwtTokenExpired } from "hono/utils/jwt/types"
@@ -19,6 +21,19 @@ const eventValidators: Partial<Record<string, z.ZodType>> =
   clientEventValidators
 
 export const app = new Hono()
+
+app.get("/health", async (c) => {
+  const dbHealthy = await pingDatabase()
+
+  if (!dbHealthy) {
+    return c.json(
+      { status: "unhealthy", version: "4.0.2" },
+      StatusCodes.SERVICE_UNAVAILABLE,
+    )
+  }
+
+  return c.json({ status: "healthy", version: "4.0.2" })
+})
 
 app.route("/api", api)
 
@@ -36,7 +51,7 @@ const HTTP_ERROR_KEYS: Partial<Record<number, string>> = {
 app.onError((error, c) => {
   if (error instanceof DomainError) {
     if (error.status >= StatusCodes.INTERNAL_SERVER_ERROR) {
-      console.error("API error:", error)
+      console.error("API error:", error.key)
     }
 
     return c.json({ error: error.key }, error.status)
@@ -49,7 +64,7 @@ app.onError((error, c) => {
     )
   }
 
-  console.error("Unhandled API error:", error)
+  console.error("Unhandled API error")
 
   return c.json(
     { error: "errors:api.serverError" },
@@ -83,7 +98,26 @@ export const createSocketServer = (server: ServerType): Server => {
     }
 
     verifyToken(token)
-      .then((claims) => {
+      .then(async (claims) => {
+        if (isManagerRole(claims.role) && claims.ver !== undefined) {
+          const user = await validateSessionUser(claims.sub, claims.ver)
+
+          if (!user) {
+            next(authError("TOKEN_INVALID", "errors:auth.tokenInvalid"))
+
+            return
+          }
+
+          socket.data = {
+            clientId: user.id,
+            role: user.role,
+          }
+
+          next()
+
+          return
+        }
+
         socket.data = {
           clientId: claims.sub,
           role: claims.role,

@@ -101,5 +101,7 @@
   },
   "addAnswer": "回答を追加",
   "removeAnswer": "回答を削除",
-  "markCorrect": "{{label}} を正解にする"
+  "markCorrect": "{{label}} を正解にする",
+  "importQuestions": "Import Excel/JSON",
+  "aiGenerate": "AI Generate"
 }

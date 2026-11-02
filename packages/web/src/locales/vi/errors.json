@@ -11,7 +11,18 @@
     "tokenMissing": "Thiếu mã phiên",
     "unauthorized": "Bạn không có quyền truy cập",
     "usernameTooLong": "Tên người dùng không được vượt quá 24 ký tự",
-    "usernameTooShort": "Tên người dùng không được để trống"
+    "usernameTooShort": "Tên người dùng không được để trống",
+    "accountDisabled": "Tài khoản này đã bị quản trị viên khóa",
+    "accountUsernameInvalid": "Tên đăng nhập phải từ 3–48 ký tự (chữ không dấu, số, ., _, -, @)",
+    "displayNameRequired": "Họ và tên hiển thị không được để trống",
+    "displayNameTooLong": "Họ và tên hiển thị không vượt quá 64 ký tự",
+    "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không chính xác",
+    "inviteDisabled": "Chức năng tự đăng ký giảng viên hiện đang tắt",
+    "passwordTooLong": "Mật khẩu không được vượt quá 128 ký tự",
+    "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
+    "teacherInviteInvalid": "Mã mời giảng viên không hợp lệ",
+    "tooManyAttempts": "Thử quá nhiều lần, vui lòng đợi 1 phút rồi thử lại",
+    "usernameTaken": "Tên đăng nhập này đã tồn tại"
   },
   "game": {
     "alreadyStarted": "Trò chơi đã bắt đầu",
@@ -75,5 +86,19 @@
     "notFound": "Không tìm thấy media",
     "tooLarge": "Tệp quá lớn",
     "uploadFailed": "Tải tệp lên thất bại"
+  },
+  "admin": {
+    "cannotModifySelf": "Bạn không thể thực hiện thao tác này trên tài khoản của chính mình",
+    "userNotFound": "Không tìm thấy tài khoản"
+  },
+  "ai": {
+    "disabled": "Tính năng tạo câu hỏi bằng AI hiện đang tắt",
+    "invalidBaseUrl": "Địa chỉ Base URL của AI Provider không hợp lệ hoặc không an toàn",
+    "missingConfig": "Chưa cấu hình khóa API cho AI Provider",
+    "topicTooShort": "Vui lòng nhập chủ đề từ 2 đến 300 ký tự",
+    "sourceTooLong": "Nội dung tài liệu tham khảo không vượt quá 12.000 ký tự",
+    "invalidCount": "Số lượng câu hỏi phải từ 1 đến 20",
+    "providerFailed": "Không kết nối được tới máy chủ AI, vui lòng kiểm tra cấu hình hoặc thử lại",
+    "invalidOutput": "Phản hồi từ AI không đúng định dạng câu hỏi, vui lòng thử tạo lại"
   }
 }

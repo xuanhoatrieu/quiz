@@ -1,4 +1,4 @@
-import { SESSION_ROLES } from "@razzia/common/constants"
+import { isManagerRole } from "@razzia/common/constants"
 import type {
   JoinTicketClaims,
   SessionClaims,
@@ -29,16 +29,40 @@ const parseClaims = (payload: unknown): SessionClaims => {
   return result.data
 }
 
+export interface MintTokenOptions {
+  ver?: number
+  username?: string
+  displayName?: string
+}
+
 export const mintToken = async (
   sub: string,
   role: SessionRole,
+  options: MintTokenOptions = {},
 ): Promise<SessionResponse> => {
   const iat = Math.floor(Date.now() / 1000)
-  const exp = iat + (role === SESSION_ROLES.MANAGER ? MANAGER_TTL : PLAYER_TTL)
+  const exp = iat + (isManagerRole(role) ? MANAGER_TTL : PLAYER_TTL)
 
-  const token = await sign({ sub, role, iat, exp }, jwtSecret, ALGORITHM)
+  const payload: Record<string, unknown> = {
+    sub,
+    role,
+    iat,
+    exp,
+    ...(options.ver !== undefined ? { ver: options.ver } : {}),
+    ...(options.username ? { username: options.username } : {}),
+    ...(options.displayName ? { displayName: options.displayName } : {}),
+  }
 
-  return { token, clientId: sub, role, expiresAt: exp }
+  const token = await sign(payload, jwtSecret, ALGORITHM)
+
+  return {
+    token,
+    clientId: sub,
+    role,
+    expiresAt: exp,
+    ...(options.username ? { username: options.username } : {}),
+    ...(options.displayName ? { displayName: options.displayName } : {}),
+  }
 }
 
 export const verifyToken = async (token: string): Promise<SessionClaims> =>

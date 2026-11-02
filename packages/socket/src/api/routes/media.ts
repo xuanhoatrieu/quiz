@@ -1,14 +1,14 @@
 import { zValidator } from "@hono/zod-validator"
-import { MAX_MEDIA_SIZE } from "@razzia/common/constants"
 import { mediaUploadValidator } from "@razzia/common/validators/quizz"
 import { apiFactory } from "@razzia/socket/api/factory"
 import { requireManager } from "@razzia/socket/api/middleware"
 import { i18nHook } from "@razzia/socket/api/validation"
+import { maxMediaSizeBytes } from "@razzia/socket/env"
 import {
-  deleteMedia,
-  listMedia,
-  saveMedia,
-} from "@razzia/socket/services/media"
+  deleteMediaForOwner,
+  listMediaForOwner,
+  saveMediaForOwner,
+} from "@razzia/socket/services/store"
 import { bodyLimit } from "hono/body-limit"
 import { StatusCodes } from "http-status-codes"
 
@@ -17,11 +17,13 @@ const MULTIPART_OVERHEAD = 64 * 1024
 const routes = apiFactory
   .createApp()
   .use(requireManager)
-  .get("/", (c) => c.json({ media: listMedia() }))
+  .get("/", async (c) =>
+    c.json({ media: await listMediaForOwner(c.get("claims").sub) }),
+  )
   .post(
     "/",
     bodyLimit({
-      maxSize: MAX_MEDIA_SIZE + MULTIPART_OVERHEAD,
+      maxSize: maxMediaSizeBytes + MULTIPART_OVERHEAD,
       onError: (c) =>
         c.json(
           { error: "errors:media.tooLarge" },
@@ -30,10 +32,13 @@ const routes = apiFactory
     }),
     zValidator("form", mediaUploadValidator, i18nHook),
     async (c) =>
-      c.json(await saveMedia(c.req.valid("form").file), StatusCodes.CREATED),
+      c.json(
+        await saveMediaForOwner(c.req.valid("form").file, c.get("claims").sub),
+        StatusCodes.CREATED,
+      ),
   )
-  .delete("/:name", (c) => {
-    deleteMedia(c.req.param("name"))
+  .delete("/:name", async (c) => {
+    await deleteMediaForOwner(c.req.param("name"), c.get("claims").sub)
 
     return c.body(null, StatusCodes.NO_CONTENT)
   })

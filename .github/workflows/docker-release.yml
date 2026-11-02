@@ -1,12 +1,9 @@
-name: Docker Release
+name: Docker Release (GHCR)
 on:
-  release:
-    types: [published]
-
-env:
-  DOCKER_PLATFORMS: |
-    linux/amd64
-    linux/arm64
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -18,68 +15,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Extract version and tags
+      - name: Compute GHCR image tags
+        id: meta
         run: |
+          GHCR_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "ghcr_repo=${GHCR_REPO}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            VERSION=${GITHUB_REF_NAME#v}
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-            
-            # Extract major.minor (ex: 1.2.3 -> 1.2)
-            MAJOR_MINOR=$(echo $VERSION | cut -d. -f1,2)
-            echo "MAJOR_MINOR=$MAJOR_MINOR" >> $GITHUB_ENV
+            VERSION="${GITHUB_REF_NAME#v}"
+            MAJOR_MINOR=$(echo "$VERSION" | cut -d. -f1,2)
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "major_minor=${MAJOR_MINOR}" >> "$GITHUB_OUTPUT"
           else
-            echo "VERSION=latest" >> $GITHUB_ENV
-            echo "MAJOR_MINOR=latest" >> $GITHUB_ENV
+            echo "version=latest" >> "$GITHUB_OUTPUT"
+            echo "major_minor=latest" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Extract repository name (lowercase)
-        run: echo "REPO_NAME=$(basename ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      - name: Extract full repository path (lowercase, for GHCR)
-        run: echo "GHCR_REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-        with:
-          platforms: ${{ env.DOCKER_PLATFORMS }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-        with:
-          version: latest
-          install: true
-          platforms: ${{ env.DOCKER_PLATFORMS }}
-
-      - name: Log in to Docker Hub
-        if: ${{ !env.ACT }}
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to GitHub Container Registry
-        if: ${{ !env.ACT }}
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push GHCR image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          platforms: ${{ env.DOCKER_PLATFORMS }}
-          push: ${{ !env.ACT }}
+          platforms: linux/amd64
+          push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.MAJOR_MINOR }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest
-            ghcr.io/${{ env.GHCR_REPO }}:${{ env.VERSION }}
-            ghcr.io/${{ env.GHCR_REPO }}:${{ env.MAJOR_MINOR }}
-            ghcr.io/${{ env.GHCR_REPO }}:latest
+            ghcr.io/${{ steps.meta.outputs.ghcr_repo }}:latest
+            ghcr.io/${{ steps.meta.outputs.ghcr_repo }}:${{ steps.meta.outputs.sha_tag }}
+            ghcr.io/${{ steps.meta.outputs.ghcr_repo }}:${{ steps.meta.outputs.version }}
+            ghcr.io/${{ steps.meta.outputs.ghcr_repo }}:${{ steps.meta.outputs.major_minor }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          no-cache-filters: runner
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
