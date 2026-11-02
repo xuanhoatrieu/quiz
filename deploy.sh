@@ -36,9 +36,9 @@ if [ -d "$ROOT_DIR/.git" ]; then
 #!/usr/bin/env bash
 set -e
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-if [ -x "$REPO_ROOT/deploy.sh" ]; then
+if [ -f "$REPO_ROOT/deploy.sh" ]; then
   echo "🔄 [post-merge] Phát hiện git pull mới — đang tự động cập nhật DB, .env & Docker container..."
-  "$REPO_ROOT/deploy.sh" --from-hook
+  bash "$REPO_ROOT/deploy.sh" --from-hook
 fi
 EOF
   chmod +x "$HOOK_FILE"
