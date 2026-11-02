@@ -1,9 +1,9 @@
 # ==============================================================================
-# Production Docker Compose — Quiz Live Interactive Platform
+# Production Docker Compose — Quiz Live Interactive Platform (TUAF Edition)
 # Compliant with TUAF Production Architecture (production.md):
 # - Fixed container_name: quiz-web
-# - Connects to shared PostgreSQL via external Docker network (`tuaf-ai-network`)
-# - No public 0.0.0.0 ports exposed (proxied via `tuaf-nginx` or host loopback)
+# - Connects to shared PostgreSQL (`tuaf-supabase-db`) via `tuaf-ai-network`
+# - Conflict-free host port 3600 on 10.64.11.109 (Cloudflare Tunnel: http://10.64.11.109:3600)
 # - Built-in /health endpoint + container healthcheck
 # ==============================================================================
 
@@ -15,7 +15,19 @@ services:
     container_name: quiz-web
     restart: unless-stopped
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      WEB_ORIGIN: ${WEB_ORIGIN:-https://quiz.hoclieu.id.vn}
+      WS_PORT: ${WS_PORT:-3001}
+      PATH_CONFIG: ${PATH_CONFIG:-/app/config}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://quiz_user:QuizTuaf_StrongPassword_2026@tuaf-supabase-db:5432/quiz_db}
+      MANAGER_USERNAME: ${MANAGER_USERNAME:-admin}
+      MANAGER_PASSWORD: ${MANAGER_PASSWORD:-TuafQuiz@2026}
+      TEACHER_INVITE_CODE: ${TEACHER_INVITE_CODE:-TUAF2026}
+      AI_BASE_URL: ${AI_BASE_URL:-http://152.67.112.145:8317/v1}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-gemini-3-flash-preview}
     # Verified conflict-free port on Production Server 10.64.11.109 (Cloudflare Tunnel: http://10.64.11.109:3600)
     ports:
       - "${QUIZ_PORT:-3600}:3000"

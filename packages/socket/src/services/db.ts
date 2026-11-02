@@ -22,7 +22,51 @@ export const getSql = (): Sql => {
   return sqlInstance
 }
 
+const ensureDatabaseExists = async (): Promise<void> => {
+  if (!databaseUrl) {
+    return
+  }
+
+  const sql = getSql()
+
+  try {
+    await sql`SELECT 1`
+  } catch (error) {
+    const pgCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code?: unknown }).code)
+        : ""
+
+    if (pgCode !== "3D000") {
+      throw error
+    }
+
+    const parsedUrl = new URL(databaseUrl)
+    const dbName = parsedUrl.pathname.replace(/^\//, "")
+
+    if (!/^[a-zA-Z0-9_]+$/.test(dbName)) {
+      throw error
+    }
+
+    parsedUrl.pathname = "/postgres"
+    const maintenanceSql = postgres(parsedUrl.toString(), {
+      max: 1,
+      connect_timeout: 10,
+    })
+
+    try {
+      await maintenanceSql.unsafe(`CREATE DATABASE "${dbName}"`)
+    } finally {
+      await maintenanceSql.end({ timeout: 5 })
+    }
+
+    await sql.end({ timeout: 5 })
+    sqlInstance = null
+  }
+}
+
 export const initPostgresSchema = async (): Promise<void> => {
+  await ensureDatabaseExists()
   const sql = getSql()
 
   await sql`
