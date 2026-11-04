@@ -21,6 +21,14 @@ const resources = Object.entries(modules).reduce<Resource>(
   {},
 )
 
+if (typeof window !== "undefined") {
+  try {
+    window.localStorage.removeItem("i18nextLng")
+  } catch {
+    // Ignore storage access errors
+  }
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -30,6 +38,7 @@ i18n
     resources,
     detection: {
       order: ["localStorage"],
+      lookupLocalStorage: "quiz_lang",
       caches: ["localStorage"],
     },
     interpolation: { escapeValue: false },

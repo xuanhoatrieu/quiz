@@ -22,7 +22,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
 ENV_FILE="$ROOT_DIR/.env"
-COMPOSE_FILE="$ROOT_DIR/compose.prod.yml"
+COMPOSE_FILE="$ROOT_DIR/compose.yml"
 PG_CONTAINER="${PG_CONTAINER:-tuaf-supabase-db}"
 
 echo -e "${BLUE}==================================================================${NC}"
@@ -154,14 +154,32 @@ EOSQL
   fi
 fi
 
-# ─── 4. Đảm bảo Docker Network & Đồng bộ docker-compose.yml ──────────────────
+# ─── 4. Đảm bảo Docker Network & Dọn file compose trùng lặp ──────────────────
 if ! docker network inspect tuaf-ai-network >/dev/null 2>&1; then
   echo -e "${YELLOW}🌐 Đang tạo Docker network 'tuaf-ai-network'...${NC}"
   docker network create tuaf-ai-network >/dev/null
 fi
 
-if [ -f "$COMPOSE_FILE" ]; then
-  cp -f "$COMPOSE_FILE" "$ROOT_DIR/docker-compose.yml"
+# Xóa docker-compose.yml nếu tồn tại để tránh cảnh báo "Found multiple config files" với compose.yml
+if [ -f "$ROOT_DIR/docker-compose.yml" ]; then
+  rm -f "$ROOT_DIR/docker-compose.yml"
+fi
+
+# Dọn container razzia cũ nếu vô tình được khởi tạo từ compose.yml gốc trước đây
+if docker ps -a --format '{{.Names}}' | grep -qx "quiz-razzia-1"; then
+  docker rm -f quiz-razzia-1 >/dev/null 2>&1 || true
+fi
+
+# Đồng bộ project label sang "quiz" nếu container/volume cũ được tạo dưới project "razzia"
+OLD_PROJECT=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' quiz-web 2>/dev/null || true)
+if [ -n "$OLD_PROJECT" ] && [ "$OLD_PROJECT" != "quiz" ]; then
+  echo -e "${YELLOW}🔄 Đang chuẩn hóa Docker Compose project từ '${OLD_PROJECT}' sang 'quiz'...${NC}"
+  docker rm -f quiz-web >/dev/null 2>&1 || true
+fi
+VOL_PROJECT=$(docker volume inspect -f '{{index .Labels "com.docker.compose.project"}}' quiz-config 2>/dev/null || true)
+if [ -n "$VOL_PROJECT" ] && [ "$VOL_PROJECT" != "quiz" ]; then
+  docker rm -f quiz-web >/dev/null 2>&1 || true
+  docker volume rm quiz-config >/dev/null 2>&1 || true
 fi
 
 # ─── 5. Pull Image từ GHCR & Khởi động Container ─────────────────────────────

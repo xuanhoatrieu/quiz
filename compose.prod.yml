@@ -1,15 +1,20 @@
 # ==============================================================================
 # Production Docker Compose — Quiz Live Interactive Platform (TUAF Edition)
 # Compliant with TUAF Production Architecture (production.md):
+# - Explicit project name: quiz (prevents symlink warning on /home/moodle/apps/quiz)
 # - Fixed container_name: quiz-web
+# - pull_policy: always (automatically pulls latest GHCR image on `docker compose up -d`)
 # - Connects to shared PostgreSQL (`tuaf-supabase-db`) via `tuaf-ai-network`
 # - Conflict-free host port 3600 on 10.64.11.109 (Cloudflare Tunnel: http://10.64.11.109:3600)
 # - Built-in /health endpoint + container healthcheck
 # ==============================================================================
 
+name: quiz
+
 services:
   quiz-web:
     image: ghcr.io/${GHCR_OWNER:-xuanhoatrieu}/quiz:${IMAGE_TAG:-latest}
+    pull_policy: always
     # Uncomment `build: .` if building directly on the host instead of pulling GHCR:
     # build: .
     container_name: quiz-web
