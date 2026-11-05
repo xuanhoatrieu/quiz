@@ -56,7 +56,7 @@ const AiGenerateModal = ({
   const [open, setOpen] = useState(false)
   const [topic, setTopic] = useState("")
   const [sourceText, setSourceText] = useState("")
-  const [count, setCount] = useState("5")
+  const [count, setCount] = useState("10")
   const [questionType, setQuestionType] = useState<AiQuestionTypeFilter>(
     AI_QUESTION_TYPES.MIXED,
   )
@@ -105,7 +105,7 @@ const AiGenerateModal = ({
       ...(sourceText.trim().length > 0
         ? { sourceText: sourceText.trim() }
         : {}),
-      count: Number.parseInt(count, 10) || 5,
+      count: Number.parseInt(count, 10) || 10,
       questionType,
       difficulty,
       time: Number.parseInt(time, 10) || 20,

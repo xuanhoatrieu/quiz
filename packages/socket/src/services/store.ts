@@ -1,4 +1,5 @@
 import {
+  MAX_POINTS,
   MEDIA_URL_PREFIX,
   QUIZZ_MODES,
   SESSION_ROLES,
@@ -98,7 +99,7 @@ const STARTER_VI_QUIZZ: Quizz = {
       solutions: [0],
       cooldown: 5,
       time: 20,
-      maxPoints: 1000,
+      maxPoints: MAX_POINTS,
     },
     {
       type: "multi",
@@ -112,7 +113,7 @@ const STARTER_VI_QUIZZ: Quizz = {
       solutions: [0, 1, 2],
       cooldown: 5,
       time: 25,
-      maxPoints: 1000,
+      maxPoints: MAX_POINTS,
     },
   ],
 }

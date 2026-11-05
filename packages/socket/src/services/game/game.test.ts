@@ -193,7 +193,7 @@ describe("quiz flow", () => {
 
     expect(status("alice")).toMatchObject({
       name: STATUS.SHOW_RESULT,
-      data: { correct: true, points: 1000, rank: 1, aheadOfMe: null },
+      data: { correct: true, points: 1, rank: 1, aheadOfMe: null },
     })
     expect(status("bob")).toMatchObject({
       name: STATUS.SHOW_RESULT,
@@ -218,11 +218,11 @@ describe("quiz flow", () => {
 
     expect(status(MANAGER)).toMatchObject({
       name: STATUS.FINISHED,
-      data: { top: [{ username: "Alice", points: 1000 }, { username: "Bob" }] },
+      data: { top: [{ username: "Alice", points: 1 }, { username: "Bob" }] },
     })
     expect(status("bob")?.data).toMatchObject({ rank: 2 })
     expect(status("bob")?.data.top).toEqual([
-      { username: "Alice", points: 1000 },
+      { username: "Alice", points: 1 },
       { username: "Bob", points: 0 },
     ])
     expect(getResultsMeta().at(0)).toMatchObject({
@@ -263,7 +263,7 @@ describe("quiz flow", () => {
     game.selectAnswer(alice, [0])
     await vi.advanceTimersByTimeAsync(TICK_MS)
 
-    expect(status("bob")?.data).toMatchObject({ correct: true, points: 1000 })
+    expect(status("bob")?.data).toMatchObject({ correct: true, points: 1 })
     expect(status("alice")?.data).toMatchObject({ correct: false })
   })
 
@@ -357,12 +357,12 @@ describe("quiz flow", () => {
       name: STATUS.SHOW_LEADERBOARD,
       data: {
         oldLeaderboard: [{ points: 0 }, { points: 0 }],
-        leaderboard: [{ points: 1000 }, { points: 1000 }],
+        leaderboard: [{ points: 1 }, { points: 1 }],
       },
     })
   })
 
-  it("scores by answer order when there is no time limit", async () => {
+  it("awards full points when there is no time limit", async () => {
     const { game, sockets, status, start } = setup(
       createQuizz([createQuestion({ time: NO_TIME_LIMIT })]),
     )
@@ -374,8 +374,8 @@ describe("quiz flow", () => {
     game.selectAnswer(alice, [0])
     await vi.advanceTimersByTimeAsync(TICK_MS)
 
-    expect(status("bob")?.data).toMatchObject({ points: 1000 })
-    expect(status("alice")?.data).toMatchObject({ points: 500 })
+    expect(status("bob")?.data).toMatchObject({ points: 1 })
+    expect(status("alice")?.data).toMatchObject({ points: 1 })
   })
 
   it("clamps estimations to the range and ignores invalid ones", async () => {
@@ -448,7 +448,7 @@ describe("game result", () => {
 
     expect(getResultById(meta.id).questions[0].playerAnswers).toEqual([
       { playerName: "Alice", answerIds: [0], correct: false, points: -100 },
-      { playerName: "Bob", answerIds: [0, 1], correct: true, points: 1000 },
+      { playerName: "Bob", answerIds: [0, 1], correct: true, points: 1 },
       { playerName: "Carol", answerIds: null, correct: false, points: 0 },
     ])
   })

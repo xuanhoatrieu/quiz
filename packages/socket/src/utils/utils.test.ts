@@ -10,31 +10,31 @@ afterEach(() => {
 })
 
 describe("orderToPoint", () => {
-  it("gives full points to the first and half to the last player", () => {
-    expect(orderToPoint(0, 3)).toBe(1000)
-    expect(orderToPoint(1, 3)).toBe(750)
-    expect(orderToPoint(2, 3)).toBe(500)
+  it("gives full points to all players regardless of answer order", () => {
+    expect(orderToPoint(0, 3)).toBe(1)
+    expect(orderToPoint(1, 3)).toBe(1)
+    expect(orderToPoint(2, 3)).toBe(1)
   })
 
-  it("gives full points to a lone player", () => {
+  it("gives full custom points to a player", () => {
     expect(orderToPoint(0, 1, 200)).toBe(200)
   })
 })
 
 describe("timeToPoint", () => {
-  it("decreases the points with the time spent answering", () => {
+  it("gives full points when answered within the time limit and 0 after timeout", () => {
     vi.useFakeTimers()
 
-    const question = createQuestion({ time: 10, maxPoints: 2000 })
+    const question = createQuestion({ time: 10, maxPoints: 1 })
     const start = Date.now()
 
-    expect(timeToPoint(start, question)).toBe(2000)
+    expect(timeToPoint(start, question)).toBe(1)
 
-    vi.advanceTimersByTime(5000)
+    vi.advanceTimersByTime(9000)
 
-    expect(timeToPoint(start, question)).toBe(1000)
+    expect(timeToPoint(start, question)).toBe(1)
 
-    vi.advanceTimersByTime(10_000)
+    vi.advanceTimersByTime(2000)
 
     expect(timeToPoint(start, question)).toBe(0)
   })

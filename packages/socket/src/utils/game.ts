@@ -69,26 +69,19 @@ export const createInviteCode = (length = 6) => {
 }
 
 export const orderToPoint = (
-  index: number,
-  totalPlayers: number,
+  _index: number,
+  _totalPlayers: number,
   maxPoints = MAX_POINTS,
-): number => {
-  if (totalPlayers <= 1) {
-    return maxPoints
-  }
-
-  return Math.round(maxPoints - (index / (totalPlayers - 1)) * (maxPoints / 2))
-}
+): number => maxPoints
 
 export const timeToPoint = (startTime: number, question: Question): number => {
   const maxPoints = question.maxPoints ?? MAX_POINTS
-  let points = maxPoints
-
   const actualTime = Date.now()
   const tempsPasseEnSecondes = (actualTime - startTime) / SECOND_MS
 
-  points -= (maxPoints / question.time) * tempsPasseEnSecondes
-  points = Math.max(0, points)
+  if (question.time > 0 && tempsPasseEnSecondes > question.time) {
+    return 0
+  }
 
-  return points
+  return maxPoints
 }

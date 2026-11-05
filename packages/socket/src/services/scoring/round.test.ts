@@ -33,15 +33,20 @@ describe("scoreQuestion", () => {
     ])
   })
 
-  it("scales the points with partial scoring", () => {
-    const question = createQuestion({ type: "multi", solutions: [0, 1] })
+  it("scales the points with partial scoring and guarantees at least 1 point when maxPoints is 1", () => {
+    const question = createQuestion({
+      type: "multi",
+      solutions: [0, 1, 2],
+      maxPoints: 1,
+    })
     const [scored] = scoreQuestion(
       question,
       [alice()],
-      [{ playerId: "alice", answerIds: [0], points: 1000 }],
+      [{ playerId: "alice", answerIds: [0], points: 1 }],
     )
 
-    expect(scored.lastPoints).toBe(500)
+    expect(scored.lastCorrect).toBe(true)
+    expect(scored.lastPoints).toBe(1)
   })
 
   it("applies the penalty to wrong answers only, never below zero", () => {

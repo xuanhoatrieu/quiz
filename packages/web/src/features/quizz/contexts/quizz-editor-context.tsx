@@ -1,5 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { QUESTION_TYPES, QUIZZ_MODES } from "@razzia/common/constants"
+import {
+  MAX_POINTS,
+  QUESTION_TYPES,
+  QUIZZ_MODES,
+} from "@razzia/common/constants"
 import type {
   Question,
   Quizz,
@@ -60,6 +64,7 @@ const defaultQuestion = (): Question => ({
   solutions: [0],
   cooldown: 5,
   time: 20,
+  maxPoints: MAX_POINTS,
 })
 
 const clampIndex = (index: number, length: number) =>

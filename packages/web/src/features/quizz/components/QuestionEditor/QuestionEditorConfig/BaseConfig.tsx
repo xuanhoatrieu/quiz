@@ -22,7 +22,7 @@ import { ArrowBigDownDash, Clock, ListChecks, Star, Timer } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 const DEFAULT_TIME = 20
-const DEFAULT_PENALTY = 100
+const DEFAULT_PENALTY = 1
 
 const BaseConfig = () => {
   const { currentQuestion, currentIndex, gameMode, updateQuestion } =
