@@ -118,17 +118,17 @@ const Podium = ({ data: { subject, top } }: Props) => {
           {subject}
         </h2>
 
-        <div className="mt-auto flex w-full max-w-3xl items-end justify-center gap-2 overflow-x-visible overflow-y-hidden px-2 pt-8 sm:gap-4 sm:px-6">
+        <div className="mt-auto flex w-full max-w-5xl items-end justify-center gap-2 overflow-x-visible overflow-y-hidden px-2 pt-8 sm:gap-4 sm:px-6">
           {top[1] && (
             <div
               className={clsx(
-                "z-20 flex max-w-60 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
+                "z-20 flex max-w-72 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
                 { "translate-y-0! opacity-100": apparition >= 2 },
               )}
             >
               <p
                 className={clsx(
-                  "w-full truncate px-1 text-center text-base font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl",
+                  "w-full px-1 text-center text-sm leading-tight font-bold wrap-break-word whitespace-normal text-white drop-shadow-lg sm:text-xl md:text-2xl",
                   {
                     "anim-balanced": apparition >= 4,
                   },
@@ -148,18 +148,18 @@ const Podium = ({ data: { subject, top } }: Props) => {
           {top[0] && (
             <div
               className={clsx(
-                "z-30 flex max-w-64 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
+                "z-30 flex max-w-80 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
                 {
                   "translate-y-0! opacity-100": apparition >= 3,
                 },
                 {
-                  "max-w-52 sm:max-w-64": top.length < 2,
+                  "max-w-64 sm:max-w-80": top.length < 2,
                 },
               )}
             >
               <p
                 className={clsx(
-                  "w-full truncate px-1 text-center text-lg font-bold text-white opacity-0 drop-shadow-lg sm:text-2xl md:text-4xl",
+                  "w-full px-1 text-center text-base leading-tight font-bold wrap-break-word whitespace-normal text-white opacity-0 drop-shadow-lg sm:text-2xl md:text-3xl",
                   { "anim-balanced opacity-100": apparition >= 4 },
                 )}
               >
@@ -177,7 +177,7 @@ const Podium = ({ data: { subject, top } }: Props) => {
           {top[2] && (
             <div
               className={clsx(
-                "z-10 flex max-w-60 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
+                "z-10 flex max-w-72 min-w-0 flex-1 translate-y-full flex-col items-center justify-end gap-2 opacity-0 transition-all duration-500 sm:gap-3",
                 {
                   "translate-y-0! opacity-100": apparition >= 1,
                 },
@@ -185,7 +185,7 @@ const Podium = ({ data: { subject, top } }: Props) => {
             >
               <p
                 className={clsx(
-                  "w-full truncate px-1 text-center text-base font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl",
+                  "w-full px-1 text-center text-sm leading-tight font-bold wrap-break-word whitespace-normal text-white drop-shadow-lg sm:text-xl md:text-2xl",
                   {
                     "anim-balanced": apparition >= 4,
                   },

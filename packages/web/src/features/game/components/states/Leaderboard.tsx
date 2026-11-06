@@ -95,8 +95,8 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
               }}
               className="bg-primary flex w-full items-center justify-between gap-3 rounded-xl p-2.5 text-xl font-bold text-white sm:p-3 sm:text-2xl md:text-3xl"
             >
-              <span className="flex min-w-0 items-center gap-2 truncate drop-shadow-md">
-                <span className="truncate">{username}</span>
+              <span className="flex min-w-0 items-center gap-2 wrap-break-word drop-shadow-md">
+                <span className="wrap-break-word">{username}</span>
                 <StreakBadge streak={streak} />
               </span>
               {isAnimating ? (

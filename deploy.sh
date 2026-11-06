@@ -58,6 +58,7 @@ ensure_env_key() {
 if [ ! -f "$ENV_FILE" ]; then
   echo -e "${YELLOW}⚙️  Chưa có file .env — đang tự động khởi tạo .env chuẩn Production...${NC}"
   RAND_DB_PASS="QuizTuaf_$(openssl rand -hex 12 2>/dev/null || head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  RAND_JWT_SECRET="$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
   RAND_ADMIN_PASS="${MANAGER_PASSWORD:-TuafQuiz@2026}"
 
   cat > "$ENV_FILE" <<EOF
@@ -75,10 +76,11 @@ PATH_CONFIG=/app/config
 # 2. Kết nối PostgreSQL dùng chung (tuaf-supabase-db qua mạng tuaf-ai-network)
 DATABASE_URL=postgresql://quiz_user:${RAND_DB_PASS}@tuaf-supabase-db:5432/quiz_db
 
-# 3. Tài khoản Super Admin & Mã mời Giảng viên (RBAC)
+# 3. Tài khoản Super Admin, JWT Secret & Mã mời Giảng viên (RBAC)
 MANAGER_USERNAME=admin
 MANAGER_PASSWORD=${RAND_ADMIN_PASS}
 TEACHER_INVITE_CODE=TUAF2026
+JWT_SECRET=${RAND_JWT_SECRET}
 
 # 4. Cấu hình AI tạo câu hỏi tự động (OpenAI-compatible endpoint)
 AI_BASE_URL=http://152.67.112.145:8317/v1
@@ -89,6 +91,7 @@ EOF
   echo -e "${GREEN}✓ Đã tạo mới file .env thành công!${NC}"
 else
   echo -e "${CYAN}ℹ️  File .env đã tồn tại — đang kiểm tra & đồng bộ các biến cấu hình còn thiếu...${NC}"
+  RAND_JWT_SECRET="$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
   ensure_env_key "QUIZ_PORT" "3600"
   ensure_env_key "WEB_ORIGIN" "https://quiz.hoclieu.id.vn"
   ensure_env_key "WS_PORT" "3001"
@@ -97,6 +100,7 @@ else
   ensure_env_key "MANAGER_USERNAME" "admin"
   ensure_env_key "MANAGER_PASSWORD" "TuafQuiz@2026"
   ensure_env_key "TEACHER_INVITE_CODE" "TUAF2026"
+  ensure_env_key "JWT_SECRET" "${RAND_JWT_SECRET}"
   ensure_env_key "AI_BASE_URL" "http://152.67.112.145:8317/v1"
   ensure_env_key "AI_API_KEY" "${AI_API_KEY:-}"
   ensure_env_key "AI_MODEL" "gemini-3-flash-preview"
