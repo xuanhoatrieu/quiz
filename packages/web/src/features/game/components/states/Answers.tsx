@@ -13,7 +13,7 @@ import { QUESTION_REGISTRY } from "@razzia/web/features/questions"
 import useScreenSize from "@razzia/web/hooks/useScreenSize"
 import clsx from "clsx"
 import { CircleQuestionMark, Image, Video } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import useSound from "use-sound"
 
@@ -41,6 +41,7 @@ const Answers = ({
 
   const [cooldown, setCooldown] = useState(time)
   const [totalAnswer, setTotalAnswer] = useState(0)
+  const lastPopAtRef = useRef(0)
   const { t } = useTranslation()
   const { width } = useScreenSize()
 
@@ -75,6 +76,10 @@ const Answers = ({
   }
 
   useEffect(() => {
+    if (player) {
+      return
+    }
+
     const disabledMusicMedia: QuestionMediaType[] = [
       MEDIA_TYPES.AUDIO,
       MEDIA_TYPES.VIDEO,
@@ -90,7 +95,7 @@ const Answers = ({
       stopMusic()
     }
     // oxlint-disable-next-line
-  }, [playMusic])
+  }, [playMusic, player])
 
   useEvent(EVENTS.GAME.COOLDOWN, (sec) => {
     setCooldown(sec)
@@ -98,7 +103,15 @@ const Answers = ({
 
   useEvent(EVENTS.GAME.PLAYER_ANSWER, (count) => {
     setTotalAnswer(count)
-    sfxPop()
+
+    if (!player) {
+      const now = Date.now()
+
+      if (now - lastPopAtRef.current >= 250) {
+        lastPopAtRef.current = now
+        sfxPop()
+      }
+    }
   })
 
   const { AnswerComponent } = QUESTION_REGISTRY[questionType]

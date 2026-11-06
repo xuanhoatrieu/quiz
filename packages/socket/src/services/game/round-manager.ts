@@ -561,10 +561,9 @@ export class RoundManager {
       text: "game:waitingForAnswers",
     })
 
-    socket
-      .to(this.opts.gameId)
+    this.opts.io
+      .to(this.opts.getManagerId())
       .emit(EVENTS.GAME.PLAYER_ANSWER, this.playersAnswers.length)
-    this.opts.players.broadcastCount()
     this.endIfEveryoneAnswered()
   }
 
@@ -579,12 +578,12 @@ export class RoundManager {
       return
     }
 
-    const connected = this.opts.players.getAll().filter((p) => p.connected)
-    const everyoneAnswered = connected.every((player) =>
+    const allPlayers = this.opts.players.getAll()
+    const everyoneAnswered = allPlayers.every((player) =>
       this.playersAnswers.some((a) => a.playerId === player.id),
     )
 
-    if (connected.length > 0 && everyoneAnswered) {
+    if (allPlayers.length > 0 && everyoneAnswered) {
       this.opts.cooldown.abort()
     }
   }

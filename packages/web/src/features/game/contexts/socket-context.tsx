@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react"
 import toast from "react-hot-toast"
@@ -29,10 +30,13 @@ const MAX_AUTH_RETRIES = 2
 
 export const socketClient: TypedSocket = io("/", {
   path: "/ws",
+  transports: ["websocket", "polling"],
+  rememberUpgrade: true,
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
   closeOnBeforeunload: true,
   auth: (cb) => {
     ensureSession()
@@ -60,6 +64,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false)
   const [clientId, setClientId] = useState("")
   const { t } = useTranslation()
+  const tRef = useRef(t)
+
+  useEffect(() => {
+    tRef.current = t
+  })
 
   useEffect(() => {
     ensureSession().then((session) => setClientId(session.clientId))
@@ -85,7 +94,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (authRetries >= MAX_AUTH_RETRIES) {
-        toast.error(t("errors:auth.sessionFailed"))
+        toast.error(tRef.current("errors:auth.sessionFailed"))
 
         return
       }
@@ -98,7 +107,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
           setClientId(session.clientId)
           socketClient.connect()
         })
-        .catch(() => toast.error(t("errors:auth.sessionFailed")))
+        .catch(() => toast.error(tRef.current("errors:auth.sessionFailed")))
     }
 
     socketClient.on("connect", handleConnect)
@@ -111,7 +120,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       socketClient.off("connect_error", handleError)
       socketClient.disconnect()
     }
-  }, [t])
+  }, [])
 
   const connect = useCallback(() => {
     if (!socketClient.connected) {
@@ -153,14 +162,24 @@ export const useEvent = <E extends keyof ServerToClientEvents>(
   callback: ServerToClientEvents[E],
 ) => {
   const { socket } = useSocket()
+  const callbackRef = useRef(callback)
 
   useEffect(() => {
+    callbackRef.current = callback
+  })
+
+  useEffect(() => {
+    const handler = (...args: unknown[]) => {
+      // oxlint-disable-next-line no-explicit-any, no-unsafe-call
+      ;(callbackRef.current as any)(...args)
+    }
+
     // oxlint-disable-next-line no-explicit-any, no-unsafe-argument
-    socket.on(event, callback as any)
+    socket.on(event, handler as any)
 
     return () => {
       // oxlint-disable-next-line no-explicit-any, no-unsafe-argument
-      socket.off(event, callback as any)
+      socket.off(event, handler as any)
     }
-  }, [socket, event, callback])
+  }, [socket, event])
 }

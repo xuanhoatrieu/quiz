@@ -209,6 +209,7 @@ class Game {
   kickPlayer(playerId: string) {
     if (this.playerManager.kick(playerId)) {
       this.playerStatus.delete(playerId)
+      this.round.endIfEveryoneAnswered()
     }
   }
 

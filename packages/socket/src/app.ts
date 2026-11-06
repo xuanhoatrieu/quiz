@@ -84,6 +84,9 @@ const authError = (code: string, message: string) => {
 export const createSocketServer = (server: ServerType): Server => {
   const io: Server = new ServerIO(server, {
     path: "/ws",
+    pingInterval: 25_000,
+    pingTimeout: 60_000,
+    perMessageDeflate: false,
   })
 
   setIo(io)

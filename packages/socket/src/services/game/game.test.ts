@@ -267,7 +267,7 @@ describe("quiz flow", () => {
     expect(status("alice")?.data).toMatchObject({ correct: false })
   })
 
-  it("ends the round once every connected player answered", async () => {
+  it("ends the round once every player in the game answered, without cutting off temporarily disconnected players", async () => {
     const { game, sockets, status, start } = setup(
       createQuizz([createQuestion()]),
     )
@@ -278,10 +278,15 @@ describe("quiz flow", () => {
     game.selectAnswer(alice, [0])
     await vi.advanceTimersByTimeAsync(TICK_MS)
 
+    expect(status(MANAGER)).toBeUndefined()
+
+    game.selectAnswer(bob, [0])
+    await vi.advanceTimersByTimeAsync(TICK_MS)
+
     expect(status(MANAGER)?.name).toBe(STATUS.SHOW_RESPONSES)
   })
 
-  it("ends the round when the last player left to answer leaves", async () => {
+  it("ends the round when the last player left to answer is kicked", async () => {
     const { game, sockets, status, start } = setup(
       createQuizz([createQuestion()]),
     )
@@ -293,7 +298,7 @@ describe("quiz flow", () => {
 
     expect(status(MANAGER)).toBeUndefined()
 
-    game.setPlayerDisconnected(bob.id)
+    game.kickPlayer(bob.id)
     await vi.advanceTimersByTimeAsync(TICK_MS)
 
     expect(status(MANAGER)?.name).toBe(STATUS.SHOW_RESPONSES)
