@@ -35,6 +35,7 @@ export const EVENTS = {
     AUTO_ADVANCE: "manager:autoAdvance",
     SET_LOCK: "manager:setLock",
     LOCK_UPDATED: "manager:lockUpdated",
+    SURVEY_AI_SYNTHESIS: "manager:surveyAiSynthesis",
   },
 } as const
 
@@ -71,6 +72,8 @@ export const MAX_POINTS = 1
 export const MIN_ANSWERS = 2
 
 export const MAX_ANSWERS = 4
+
+export const MAX_OTHER_TEXT_LENGTH = 200
 
 export const QUIZZ_MODES = {
   QUIZ: "quiz",

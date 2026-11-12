@@ -4,6 +4,7 @@ import {
   QUIZZ_MODES,
   SCORING_MODES,
 } from "@razzia/common/constants"
+import { computeSurveyRanking } from "@razzia/common/questions/options"
 import type { Question, Quizz } from "@razzia/common/types/game"
 import {
   normalizeLegacyQuizz,
@@ -188,5 +189,73 @@ describe("normalizeLegacyQuizz", () => {
 
   it("returns unknown data as is", () => {
     expect(normalizeLegacyQuizz("not a quizz")).toBe("not a quizz")
+  })
+})
+
+describe("survey allowOther and computeSurveyRanking", () => {
+  it("accepts allowOther on single and multi choice questions", () => {
+    const data = quizz(
+      [
+        choiceQuestion({ allowOther: true, solutions: [] }),
+        choiceQuestion({
+          type: QUESTION_TYPES.MULTI,
+          allowOther: true,
+          solutions: [],
+          options: { scoringMode: SCORING_MODES.BALANCED },
+        }),
+      ],
+      QUIZZ_MODES.SURVEY,
+    )
+
+    expect(issues(data)).toEqual([])
+  })
+
+  it("merges AI matched clusters into predefined options and ranks highest first", () => {
+    const ranking = computeSurveyRanking({
+      answers: ["Kỹ sư phần mềm", "Giáo viên", "Bác sĩ"],
+      responses: { 0: 2, 1: 1, 2: 0 },
+      aiSynthesis: {
+        synthesizedAt: "2026-11-11T00:00:00.000Z",
+        clusters: [
+          {
+            label: "Lập trình viên",
+            count: 3,
+            matchedAnswerIndex: 0,
+            items: [
+              { playerName: "An", text: "Code web" },
+              { playerName: "Bình", text: "Dev backend" },
+              { playerName: "Chi", text: "IT phần mềm" },
+            ],
+          },
+          {
+            label: "Thiết kế đồ họa (UI/UX)",
+            count: 4,
+            matchedAnswerIndex: null,
+            items: [
+              { playerName: "Dũng", text: "Designer" },
+              { playerName: "Em", text: "Thiết kế UI" },
+              { playerName: "Giang", text: "Làm đồ họa" },
+              { playerName: "Hà", text: "Vẽ minh họa" },
+            ],
+          },
+        ],
+      },
+      totalResponded: 10,
+    })
+
+    expect(ranking[0]).toMatchObject({
+      label: "Kỹ sư phần mềm",
+      count: 5,
+      directCount: 2,
+      aiMergedCount: 3,
+      percentage: 50,
+      isFromOtherCluster: false,
+    })
+    expect(ranking[1]).toMatchObject({
+      label: "Thiết kế đồ họa (UI/UX)",
+      count: 4,
+      percentage: 40,
+      isFromOtherCluster: true,
+    })
   })
 })

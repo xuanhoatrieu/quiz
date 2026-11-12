@@ -1,4 +1,8 @@
-import type { Question, Quizz } from "@razzia/common/types/game"
+import type {
+  Question,
+  QuestionAiSynthesis,
+  Quizz,
+} from "@razzia/common/types/game"
 
 export const AI_QUESTION_TYPES = {
   MIXED: "mixed",
@@ -57,5 +61,10 @@ export interface AiGenerateQuizzInput {
 export interface AiGenerateQuizzResponse {
   quizz: Quizz
   questions: Question[]
+  model: string
+}
+
+export interface AiSynthesizeSurveyQuestionResponse {
+  aiSynthesis: QuestionAiSynthesis
   model: string
 }

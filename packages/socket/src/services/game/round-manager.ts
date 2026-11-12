@@ -1,12 +1,17 @@
 // oxlint-disable typescript/no-unnecessary-condition
 import {
   EVENTS,
+  MAX_OTHER_TEXT_LENGTH,
   MAX_POINTS,
   MEDIA_TYPES,
   NO_TIME_LIMIT,
+  QUESTION_TYPES,
   QUIZZ_MODES,
 } from "@razzia/common/constants"
-import { isEstimationOptions } from "@razzia/common/questions/options"
+import {
+  computeSurveyRanking,
+  isEstimationOptions,
+} from "@razzia/common/questions/options"
 import type {
   Answer,
   GameResult,
@@ -14,9 +19,12 @@ import type {
   GameUpdateQuestion,
   Player,
   Question,
+  QuestionAiSynthesis,
   QuestionResult,
   Quizz,
   QuizzMode,
+  SurveyOtherResponseItem,
+  SurveyQuestionHighlight,
 } from "@razzia/common/types/game"
 import type { Server, Socket } from "@razzia/common/types/game/socket"
 import {
@@ -24,6 +32,10 @@ import {
   STATUS,
   type StatusDataMap,
 } from "@razzia/common/types/game/status"
+import {
+  buildFallbackOtherSynthesis,
+  synthesizeSurveyOtherAnswersWithAi,
+} from "@razzia/socket/services/ai"
 import { CooldownTimer } from "@razzia/socket/services/game/cooldown-timer"
 import { PlayerManager } from "@razzia/socket/services/game/player-manager"
 import {
@@ -56,6 +68,7 @@ export interface RoundManagerOptions {
   send: SendFn
   onNewQuestion: () => void
   onGameFinished: (_result: GameResult) => void
+  onResultUpdated?: (_result: GameResult) => void
   getSettings: () => GameSettings
 }
 
@@ -79,6 +92,7 @@ export class RoundManager {
   private leaderboard: Player[] = []
   private tempOldLeaderboard: Player[] | null = null
   private questionsHistory: QuestionResult[] = []
+  private lastSavedResult: GameResult | null = null
   private autoAdvanceTimer: NodeJS.Timeout | null = null
 
   constructor(opts: RoundManagerOptions) {
@@ -318,6 +332,7 @@ export class RoundManager {
     this.opts.broadcast(STATUS.SELECT_ANSWER, {
       question: this.question.question,
       answers: this.question.answers,
+      allowOther: this.question.allowOther,
       media: this.question.media,
       time: this.question.time,
       totalPlayer: this.opts.players.count(),
@@ -339,18 +354,28 @@ export class RoundManager {
 
   // ── Steps ────────────────────────────────────────────────────────────────
 
-  private recordHistory(players: Player[], scored: ScoredPlayer[] = []): void {
+  private recordHistory(
+    players: Player[],
+    scored: ScoredPlayer[] = [],
+    initialSynthesis?: QuestionAiSynthesis,
+  ): number {
+    const historyIndex = this.questionsHistory.length
+
     this.questionsHistory.push({
       ...this.question,
       solutions: this.isSurvey() ? undefined : this.question.solutions,
+      ...(initialSynthesis ? { aiSynthesis: initialSynthesis } : {}),
       playerAnswers: players.map((player) => {
         const score = scored.find((s) => s.id === player.id)
+        const entry = this.playersAnswers.find((a) => a.playerId === player.id)
 
         return {
           playerName: player.username,
           answerIds:
-            this.playersAnswers.find((a) => a.playerId === player.id)
-              ?.answerIds ?? null,
+            entry && (entry.answerIds.length > 0 || entry.otherText)
+              ? entry.answerIds
+              : null,
+          ...(entry?.otherText ? { otherText: entry.otherText } : {}),
           ...(score && {
             correct: score.lastCorrect,
             points: score.lastPoints,
@@ -358,17 +383,82 @@ export class RoundManager {
         }
       }),
     })
+
+    return historyIndex
+  }
+
+  private collectOtherResponses(players: Player[]): SurveyOtherResponseItem[] {
+    const list: SurveyOtherResponseItem[] = []
+
+    for (const answer of this.playersAnswers) {
+      if (!answer.otherText) {
+        continue
+      }
+
+      const player = players.find((p) => p.id === answer.playerId)
+
+      if (player) {
+        list.push({ playerName: player.username, text: answer.otherText })
+      }
+    }
+
+    return list
+  }
+
+  private triggerAsyncOtherSynthesis(
+    historyIndex: number,
+    otherResponses: SurveyOtherResponseItem[],
+  ): void {
+    const historyItem = this.questionsHistory[historyIndex]
+
+    if (otherResponses.length === 0 || !historyItem) {
+      return
+    }
+
+    void synthesizeSurveyOtherAnswersWithAi(
+      {
+        question: historyItem.question,
+        predefinedAnswers: historyItem.answers,
+        otherResponses,
+      },
+      false,
+    )
+      .then(({ aiSynthesis }) => {
+        historyItem.aiSynthesis = aiSynthesis
+
+        if (this.lastSavedResult) {
+          this.opts.onResultUpdated?.(this.lastSavedResult)
+        }
+
+        this.opts.io
+          .to(this.opts.getManagerId())
+          .emit(EVENTS.MANAGER.SURVEY_AI_SYNTHESIS, {
+            questionIndex: historyIndex,
+            aiSynthesis,
+          })
+      })
+      .catch(() => {
+        /* Fallback synthesis is already set */
+      })
   }
 
   private showResults(): void {
     const currentPlayers = this.opts.players.getAll()
     const answerCounts = countAnswers(this.playersAnswers)
+    const otherResponses = this.collectOtherResponses(currentPlayers)
+    const initialSynthesis =
+      otherResponses.length > 0
+        ? buildFallbackOtherSynthesis(this.question.answers, otherResponses)
+        : undefined
 
     if (this.isSurvey()) {
       this.opts.send(this.opts.getManagerId(), STATUS.SHOW_RESPONSES, {
         ...this.question,
         solutions: undefined,
         responses: answerCounts,
+        otherResponses,
+        aiSynthesis: initialSynthesis,
+        aiSynthesizing: otherResponses.length > 0,
       })
 
       currentPlayers.forEach((player) => {
@@ -377,8 +467,13 @@ export class RoundManager {
         })
       })
 
-      this.recordHistory(currentPlayers)
+      const historyIndex = this.recordHistory(
+        currentPlayers,
+        [],
+        initialSynthesis,
+      )
       this.playersAnswers = []
+      this.triggerAsyncOtherSynthesis(historyIndex, otherResponses)
 
       return
     }
@@ -415,13 +510,21 @@ export class RoundManager {
     this.opts.send(this.opts.getManagerId(), STATUS.SHOW_RESPONSES, {
       ...this.question,
       responses: answerCounts,
+      otherResponses,
+      aiSynthesis: initialSynthesis,
+      aiSynthesizing: otherResponses.length > 0,
     })
 
-    this.recordHistory(currentPlayers, sortedPlayers)
+    const historyIndex = this.recordHistory(
+      currentPlayers,
+      sortedPlayers,
+      initialSynthesis,
+    )
 
     this.leaderboard = sortedPlayers
     this.tempOldLeaderboard ??= oldLeaderboard
     this.playersAnswers = []
+    this.triggerAsyncOtherSynthesis(historyIndex, otherResponses)
   }
 
   private showLeaderboard(): void {
@@ -435,13 +538,66 @@ export class RoundManager {
     this.tempOldLeaderboard = null
   }
 
+  private buildSurveyHighlights(): SurveyQuestionHighlight[] {
+    return this.questionsHistory
+      .filter((q) => q.type !== QUESTION_TYPES.ESTIMATION)
+      .map((q) => {
+        const directCounts: Record<number, number> = {}
+        const otherResponses: SurveyOtherResponseItem[] = []
+        let totalResponses = 0
+
+        for (const pa of q.playerAnswers) {
+          const hasIds = pa.answerIds !== null && pa.answerIds.length > 0
+          const hasOther =
+            typeof pa.otherText === "string" && pa.otherText.trim().length > 0
+
+          if (hasIds || hasOther) {
+            totalResponses += 1
+          }
+
+          if (pa.answerIds) {
+            for (const id of pa.answerIds) {
+              directCounts[id] = (directCounts[id] ?? 0) + 1
+            }
+          }
+
+          if (hasOther && pa.otherText) {
+            otherResponses.push({
+              playerName: pa.playerName,
+              text: pa.otherText.trim(),
+            })
+          }
+        }
+
+        const ranked = computeSurveyRanking({
+          answers: q.answers,
+          responses: directCounts,
+          otherResponses,
+          aiSynthesis: q.aiSynthesis,
+          totalResponded: totalResponses,
+        })
+
+        return {
+          question: q.question,
+          totalResponses,
+          topItems: ranked.filter((item) => item.count > 0).slice(0, 3),
+          otherCount: otherResponses.length,
+          ...(q.aiSynthesis?.summaryNote
+            ? { summaryNote: q.aiSynthesis.summaryNote }
+            : {}),
+        }
+      })
+  }
+
   private finishSurvey(): void {
     const players = this.opts.players.getAll()
+    const highlights = this.buildSurveyHighlights()
 
     const summary = {
       subject: this.opts.quizz.subject,
       totalPlayers: players.length,
       totalQuestions: this.opts.quizz.questions.length,
+      highlights,
     }
 
     this.opts.send(this.opts.getManagerId(), STATUS.SUMMARY, summary)
@@ -459,7 +615,7 @@ export class RoundManager {
       ? this.opts.players.getAll()
       : this.leaderboard
 
-    this.opts.onGameFinished({
+    const resultPayload: GameResult = {
       id: `${Date.now()}-${nanoid(8)}`,
       gameMode: this.opts.quizz.gameMode,
       subject: this.opts.quizz.subject,
@@ -470,7 +626,10 @@ export class RoundManager {
         rank: index + 1,
       })),
       questions: this.questionsHistory,
-    })
+    }
+
+    this.lastSavedResult = resultPayload
+    this.opts.onGameFinished(resultPayload)
 
     if (this.isSurvey()) {
       this.finishSurvey()
@@ -498,11 +657,26 @@ export class RoundManager {
 
   // ── Player actions ───────────────────────────────────────────────────────
 
-  private normalizeAnswer(answerIds: number[]): number[] | null {
-    const { options } = this.question
+  private normalizeAnswer(
+    answerIds: number[],
+    otherText?: string,
+  ): number[] | null {
+    const { options, answers } = this.question
 
     if (!isEstimationOptions(options)) {
-      return answerIds
+      const validIds = answerIds.filter(
+        (id) => Number.isInteger(id) && id >= 0 && id < answers.length,
+      )
+
+      if (validIds.length === 0 && !otherText) {
+        return null
+      }
+
+      if (this.question.type === QUESTION_TYPES.SINGLE) {
+        return otherText ? [] : validIds.slice(0, 1)
+      }
+
+      return validIds
     }
 
     const value = answerIds.at(0)
@@ -518,7 +692,7 @@ export class RoundManager {
     return [Math.min(options.max, Math.max(options.min, value))]
   }
 
-  selectAnswer(socket: Socket, answerIds: number[]): void {
+  selectAnswer(socket: Socket, answerIds: number[], otherText?: string): void {
     const player = this.opts.players.findById(socket.id)
 
     if (!player || !this.acceptingAnswers) {
@@ -529,7 +703,14 @@ export class RoundManager {
       return
     }
 
-    const submitted = this.normalizeAnswer(answerIds)
+    const cleanOther =
+      this.question.allowOther &&
+      typeof otherText === "string" &&
+      otherText.trim().length > 0
+        ? otherText.trim().slice(0, MAX_OTHER_TEXT_LENGTH)
+        : undefined
+
+    const submitted = this.normalizeAnswer(answerIds, cleanOther)
 
     if (!submitted) {
       return
@@ -554,6 +735,7 @@ export class RoundManager {
     this.playersAnswers.push({
       playerId: player.id,
       answerIds: submitted,
+      ...(cleanOther ? { otherText: cleanOther } : {}),
       points,
     })
 

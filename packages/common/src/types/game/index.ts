@@ -42,6 +42,7 @@ export interface Player {
 export interface Answer {
   playerId: string
   answerIds: number[]
+  otherText?: string
   points: number
 }
 
@@ -69,6 +70,7 @@ export interface Question {
   note?: string
   media?: QuestionMedia
   answers: string[]
+  allowOther?: boolean
   solutions?: number[]
   cooldown: number
   time: number
@@ -110,12 +112,51 @@ export interface GameUpdateQuestion {
 export interface PlayerAnswerRecord {
   playerName: string
   answerIds: number[] | null
+  otherText?: string
   correct?: boolean
   points?: number
 }
 
+export interface SurveyOtherResponseItem {
+  playerName: string
+  text: string
+}
+
+export interface AiOtherCluster {
+  label: string
+  matchedAnswerIndex: number | null
+  count: number
+  items: SurveyOtherResponseItem[]
+}
+
+export interface QuestionAiSynthesis {
+  clusters: AiOtherCluster[]
+  summaryNote?: string
+  synthesizedAt: string
+}
+
+export interface SurveyRankItem {
+  label: string
+  count: number
+  directCount: number
+  aiMergedCount: number
+  percentage: number
+  isFromOtherCluster: boolean
+  answerIndex: number | null
+  items?: SurveyOtherResponseItem[]
+}
+
+export interface SurveyQuestionHighlight {
+  question: string
+  totalResponses: number
+  topItems: SurveyRankItem[]
+  otherCount: number
+  summaryNote?: string
+}
+
 export type QuestionResult = Question & {
   playerAnswers: PlayerAnswerRecord[]
+  aiSynthesis?: QuestionAiSynthesis
 }
 
 export interface GameResultPlayer {

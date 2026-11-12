@@ -1,8 +1,11 @@
 import type {
   Player,
+  QuestionAiSynthesis,
   QuestionMedia,
   QuestionOptions,
   QuestionType,
+  SurveyOtherResponseItem,
+  SurveyQuestionHighlight,
 } from "@razzia/common/types/game"
 
 export const STATUS = {
@@ -36,6 +39,7 @@ export interface CommonStatusDataMap {
   SELECT_ANSWER: {
     question: string
     answers: string[]
+    allowOther?: boolean
     media?: QuestionMedia
     time: number
     totalPlayer: number
@@ -57,7 +61,12 @@ export interface CommonStatusDataMap {
     top: Array<Pick<Player, "username" | "points">>
     rank?: number
   }
-  SUMMARY: { subject: string; totalPlayers: number; totalQuestions: number }
+  SUMMARY: {
+    subject: string
+    totalPlayers: number
+    totalQuestions: number
+    highlights?: SurveyQuestionHighlight[]
+  }
 }
 
 interface ManagerExtraStatus {
@@ -67,6 +76,10 @@ interface ManagerExtraStatus {
     responses: Record<number, number>
     solutions?: number[]
     answers: string[]
+    allowOther?: boolean
+    otherResponses?: SurveyOtherResponseItem[]
+    aiSynthesis?: QuestionAiSynthesis
+    aiSynthesizing?: boolean
     media?: QuestionMedia
     type: QuestionType
     options?: QuestionOptions

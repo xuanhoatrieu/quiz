@@ -127,6 +127,26 @@ const QuestionEditorAnswers = () => {
           )
         })}
       </div>
+      {currentQuestion.allowOther && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-white/60 bg-black/35 px-4 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/20 text-sm font-bold">
+              ✏️
+            </span>
+            <span className="text-sm font-semibold text-white/90 md:text-base">
+              Khác (Người tham gia tự nhập câu trả lời trên điện thoại — AI tự
+              động tổng hợp)
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => updateQuestion(currentIndex, { allowOther: false })}
+            className="rounded-md bg-white/15 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/25"
+          >
+            {t("common:delete")}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,9 +1,15 @@
 import { zValidator } from "@hono/zod-validator"
-import { aiGenerateQuizzValidator } from "@razzia/common/validators/ai"
+import {
+  aiGenerateQuizzValidator,
+  aiSynthesizeResultQuestionValidator,
+} from "@razzia/common/validators/ai"
 import { apiFactory } from "@razzia/socket/api/factory"
 import { requireManager } from "@razzia/socket/api/middleware"
 import { i18nHook } from "@razzia/socket/api/validation"
-import { generateQuizzWithAi } from "@razzia/socket/services/ai"
+import {
+  generateQuizzWithAi,
+  synthesizeResultQuestionWithAi,
+} from "@razzia/socket/services/ai"
 import { checkAuthRateLimit } from "@razzia/socket/services/rate-limit"
 import { getAiStatus } from "@razzia/socket/services/store"
 
@@ -19,6 +25,23 @@ const routes = apiFactory
       checkAuthRateLimit(c, `ai:${claims.sub}`, 10)
 
       return c.json(await generateQuizzWithAi(c.req.valid("json")))
+    },
+  )
+  .post(
+    "/synthesize-result",
+    zValidator("json", aiSynthesizeResultQuestionValidator, i18nHook),
+    async (c) => {
+      const claims = c.get("claims")
+      checkAuthRateLimit(c, `ai:${claims.sub}`, 20)
+      const { resultId, questionIndex } = c.req.valid("json")
+
+      return c.json(
+        await synthesizeResultQuestionWithAi(
+          claims.sub,
+          resultId,
+          questionIndex,
+        ),
+      )
     },
   )
 

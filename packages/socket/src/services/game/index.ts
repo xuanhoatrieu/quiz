@@ -15,7 +15,10 @@ import { CooldownTimer } from "@razzia/socket/services/game/cooldown-timer"
 import { PlayerManager } from "@razzia/socket/services/game/player-manager"
 import { RoundManager } from "@razzia/socket/services/game/round-manager"
 import Registry from "@razzia/socket/services/registry"
-import { recordResultForOwner } from "@razzia/socket/services/store"
+import {
+  recordResultForOwner,
+  updateResultForOwner,
+} from "@razzia/socket/services/store"
 import { createInviteCode } from "@razzia/socket/utils/game"
 import { createNickname } from "@razzia/socket/utils/nickname"
 import { SECOND_MS } from "@razzia/socket/utils/sleep"
@@ -94,6 +97,15 @@ class Game {
       },
       onGameFinished: (result) => {
         void recordResultForOwner(result, this._manager.clientId)
+      },
+      onResultUpdated: (result) => {
+        void updateResultForOwner(
+          result.id,
+          this._manager.clientId,
+          result,
+        ).catch(() => {
+          /* Ignore if result not yet persisted */
+        })
       },
       getSettings: () => this._settings,
     })
@@ -380,8 +392,8 @@ class Game {
     await this.round.start(socket)
   }
 
-  selectAnswer(socket: Socket, answerIds: number[]) {
-    this.round.selectAnswer(socket, answerIds)
+  selectAnswer(socket: Socket, answerIds: number[], otherText?: string) {
+    this.round.selectAnswer(socket, answerIds, otherText)
   }
 
   advance() {

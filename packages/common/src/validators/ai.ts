@@ -91,3 +91,8 @@ export const aiGenerateQuizzValidator = z.object({
   time: z.number().int().min(5).max(300),
   language: z.enum(AI_LANGUAGES),
 })
+
+export const aiSynthesizeResultQuestionValidator = z.object({
+  resultId: z.string().min(1),
+  questionIndex: z.number().int().min(0),
+})

@@ -117,7 +117,7 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
 
   socket.on(EVENTS.PLAYER.SELECTED_ANSWER, ({ gameId, data }) =>
     withPlayerGame(gameId, socket, (game) =>
-      game.selectAnswer(socket, data.answerKeys),
+      game.selectAnswer(socket, data.answerKeys, data.otherText),
     ),
   )
 

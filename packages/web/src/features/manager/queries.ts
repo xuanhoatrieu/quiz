@@ -169,3 +169,8 @@ export const adminFetchAiModels = (json: {
 
 export const generateAiQuizz = (json: AiGenerateQuizzInput) =>
   unwrap(api.ai.generate.$post({ json }))
+
+export const synthesizeAiResultQuestion = (json: {
+  resultId: string
+  questionIndex: number
+}) => unwrap(api.ai["synthesize-result"].$post({ json }))

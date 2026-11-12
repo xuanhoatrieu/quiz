@@ -1,4 +1,8 @@
-import type { GameResult, QuestionResult } from "@razzia/common/types/game"
+import type {
+  GameResult,
+  QuestionAiSynthesis,
+  QuestionResult,
+} from "@razzia/common/types/game"
 import { isAnswerCorrect } from "@razzia/web/features/questions/utils"
 import {
   createContext,
@@ -18,6 +22,10 @@ interface ResultModalContextType {
   correctPct: number
   maxAnswerCount: number
   getPlayerPoints: (_name: string) => number
+  updateQuestionAiSynthesis: (
+    _questionIndex: number,
+    _synthesis: QuestionAiSynthesis,
+  ) => void
   goNext: () => void
   goPrev: () => void
   onClose: () => void
@@ -32,13 +40,25 @@ type Props = PropsWithChildren<{
 
 export const ResultModalProvider = ({ children, result, onClose }: Props) => {
   const [questionIndex, setQuestionIndex] = useState(0)
+  const [aiSynthesisOverrides, setAiSynthesisOverrides] = useState<
+    Record<number, QuestionAiSynthesis | undefined>
+  >({})
 
-  const questionResult = result.questions[questionIndex]
+  const rawQuestionResult = result.questions[questionIndex]
+  const overrideSynthesis = aiSynthesisOverrides[questionIndex]
+  const questionResult: QuestionResult = overrideSynthesis
+    ? {
+        ...rawQuestionResult,
+        aiSynthesis: overrideSynthesis,
+      }
+    : rawQuestionResult
   const total = result.questions.length
   const totalPlayers = result.players.length
 
   const answeredCount = questionResult.playerAnswers.filter(
-    (pa) => pa.answerIds !== null && pa.answerIds.length > 0,
+    (pa) =>
+      (pa.answerIds !== null && pa.answerIds.length > 0) ||
+      Boolean(pa.otherText?.trim()),
   ).length
 
   const correctCount = questionResult.playerAnswers.filter(
@@ -60,6 +80,16 @@ export const ResultModalProvider = ({ children, result, onClose }: Props) => {
   const getPlayerPoints = (name: string) =>
     result.players.find((p) => p.username === name)?.points ?? 0
 
+  const updateQuestionAiSynthesis = (
+    idx: number,
+    synthesis: QuestionAiSynthesis,
+  ) => {
+    setAiSynthesisOverrides((prev) => ({
+      ...prev,
+      [idx]: synthesis,
+    }))
+  }
+
   const goNext = () => setQuestionIndex((i) => Math.min(i + 1, total - 1))
 
   const goPrev = () => setQuestionIndex((i) => Math.max(i - 1, 0))
@@ -77,6 +107,7 @@ export const ResultModalProvider = ({ children, result, onClose }: Props) => {
         correctPct,
         maxAnswerCount,
         getPlayerPoints,
+        updateQuestionAiSynthesis,
         goNext,
         goPrev,
         onClose,

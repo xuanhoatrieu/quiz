@@ -1,4 +1,6 @@
+import { MAX_OTHER_TEXT_LENGTH } from "@razzia/common/constants"
 import Button from "@razzia/web/components/Button"
+import Input from "@razzia/web/components/Input"
 import AnswerButton from "@razzia/web/features/game/components/AnswerButton"
 import {
   ANSWERS_COLORS,
@@ -11,14 +13,27 @@ import { useTranslation } from "react-i18next"
 
 const MultiAnswers = ({
   answers,
+  allowOther,
   onSubmit,
   readOnly,
   fill,
 }: AnswerComponentProps) => {
   const [selected, setSelected] = useState<number[]>([])
+  const [otherOpen, setOtherOpen] = useState(false)
+  const [otherText, setOtherText] = useState("")
   const { t } = useTranslation()
 
-  const handleSubmit = () => onSubmit(selected)
+  const trimmedOther = otherText.trim()
+  const canConfirm =
+    selected.length > 0 || (allowOther && otherOpen && trimmedOther.length > 0)
+
+  const handleSubmit = () =>
+    onSubmit(
+      selected,
+      allowOther && otherOpen && trimmedOther.length > 0
+        ? trimmedOther
+        : undefined,
+    )
 
   const toggle = (key: number) => {
     setSelected((prev) =>
@@ -61,10 +76,46 @@ const MultiAnswers = ({
           )
         })}
       </div>
+
+      {allowOther && !readOnly && (
+        <div className="mx-auto w-full max-w-2xl">
+          {!otherOpen ? (
+            <button
+              type="button"
+              onClick={() => setOtherOpen(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/70 bg-black/45 px-4 py-2.5 text-base font-bold text-white transition hover:bg-black/60"
+            >
+              <span>✏️</span>
+              <span>Khác (Tự gõ câu trả lời của bạn...)</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 rounded-2xl bg-white/95 p-2.5 shadow-lg">
+              <Input
+                value={otherText}
+                maxLength={MAX_OTHER_TEXT_LENGTH}
+                onChange={(e) => setOtherText(e.target.value)}
+                placeholder="Nhập thêm công việc / ý kiến khác của bạn..."
+                className="flex-1 text-black"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setOtherOpen(false)
+                  setOtherText("")
+                }}
+                className="rounded-lg bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-300"
+              >
+                {t("common:cancel")}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {!readOnly && (
         <Button
           onClick={handleSubmit}
-          disabled={selected.length === 0}
+          disabled={!canConfirm}
           className="mx-auto w-full max-w-xs"
         >
           {t("game:confirm")}

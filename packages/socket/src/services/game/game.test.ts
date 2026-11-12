@@ -673,3 +673,57 @@ describe("manager grace period", () => {
     expect(onTimeout).not.toHaveBeenCalled()
   })
 })
+
+describe("survey custom otherText and topChoices", () => {
+  it("accepts custom otherText when allowOther is true and computes topChoices on finish", async () => {
+    const surveyQuizz: Quizz = {
+      subject: "Khảo sát nghề nghiệp",
+      gameMode: QUIZZ_MODES.SURVEY,
+      questions: [
+        createQuestion({
+          question: "Bạn muốn làm nghề gì?",
+          answers: ["Kỹ sư phần mềm", "Bác sĩ"],
+          solutions: [],
+          allowOther: true,
+        }),
+      ],
+    }
+
+    const { game, sockets, start, status } = setup(surveyQuizz, [
+      "Alice",
+      "Bob",
+      "Charlie",
+    ])
+    const [alice, bob, charlie] = sockets
+
+    await start()
+
+    game.selectAnswer(alice, [], "Thiết kế đồ họa")
+    game.selectAnswer(bob, [], "Thiết kế đồ họa")
+    game.selectAnswer(charlie, [0])
+
+    await vi.advanceTimersByTimeAsync(TICK_MS)
+
+    expect(status(MANAGER)?.name).toBe(STATUS.SHOW_RESPONSES)
+    expect(status(MANAGER)?.data).toMatchObject({
+      responses: { 0: 1 },
+      otherResponses: [
+        { playerName: "Alice", text: "Thiết kế đồ họa" },
+        { playerName: "Bob", text: "Thiết kế đồ họa" },
+      ],
+    })
+
+    game.advance()
+    await vi.advanceTimersByTimeAsync(TICK_MS)
+
+    expect(status(MANAGER)?.name).toBe(STATUS.SUMMARY)
+    expect(status(MANAGER)?.data).toMatchObject({
+      highlights: [
+        expect.objectContaining({
+          question: "Bạn muốn làm nghề gì?",
+          totalResponses: 3,
+        }),
+      ],
+    })
+  })
+})

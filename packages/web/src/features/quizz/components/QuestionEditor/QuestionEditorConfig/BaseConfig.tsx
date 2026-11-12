@@ -1,6 +1,7 @@
 import {
   MAX_POINTS,
   NO_TIME_LIMIT,
+  QUESTION_TYPES,
   QUIZZ_MODES,
 } from "@razzia/common/constants"
 import { isMultiOptions } from "@razzia/common/questions/options"
@@ -18,7 +19,14 @@ import ConfigField from "@razzia/web/features/quizz/components/QuestionEditor/Qu
 import ConfigNumberInput from "@razzia/web/features/quizz/components/QuestionEditor/QuestionEditorConfig/ConfigNumberInput"
 import ConfigSection from "@razzia/web/features/quizz/components/QuestionEditor/QuestionEditorConfig/ConfigSection"
 import { useQuizzEditor } from "@razzia/web/features/quizz/contexts/quizz-editor-context"
-import { ArrowBigDownDash, Clock, ListChecks, Star, Timer } from "lucide-react"
+import {
+  ArrowBigDownDash,
+  Clock,
+  ListChecks,
+  MessageSquarePlus,
+  Star,
+  Timer,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 const DEFAULT_TIME = 20
@@ -30,6 +38,10 @@ const BaseConfig = () => {
   const { t } = useTranslation()
   const isTimeLimitEnabled = currentQuestion.time !== NO_TIME_LIMIT
   const isPenaltyEnabled = (currentQuestion.penalty ?? 0) > 0
+  const isAllowOtherEnabled = Boolean(currentQuestion.allowOther)
+  const isChoiceQuestion =
+    currentQuestion.type === QUESTION_TYPES.SINGLE ||
+    currentQuestion.type === QUESTION_TYPES.MULTI
   const { scoringModes } = QUESTION_REGISTRY[currentQuestion.type]
   const { options } = currentQuestion
   const scoringMode = isMultiOptions(options) ? options.scoringMode : undefined
@@ -47,6 +59,12 @@ const BaseConfig = () => {
   const handleTogglePenalty = (checked: boolean) => {
     updateQuestion(currentIndex, {
       penalty: checked ? DEFAULT_PENALTY : undefined,
+    })
+  }
+
+  const handleToggleAllowOther = (checked: boolean) => {
+    updateQuestion(currentIndex, {
+      allowOther: checked,
     })
   }
 
@@ -130,6 +148,29 @@ const BaseConfig = () => {
               </ConfigField.Description>
             </ConfigField>
           )}
+        </ConfigSection>
+      )}
+
+      {isChoiceQuestion && (
+        <ConfigSection title="Tùy chọn mở rộng">
+          <ConfigField>
+            <ConfigField.Label
+              icon={<MessageSquarePlus className="size-4" />}
+              label="Cho phép mục 'Khác' (Tự gõ)"
+              action={
+                <Switch
+                  aria-label="Cho phép mục 'Khác' (Tự gõ)"
+                  checked={isAllowOtherEnabled}
+                  onCheckedChange={handleToggleAllowOther}
+                />
+              }
+            />
+            <ConfigField.Description>
+              Hiển thị thêm nút &lsquo;Khác&rsquo; để người tham gia tự nhập câu
+              trả lời ngoài danh sách có sẵn (AI sẽ tự động gom nhóm các câu trả
+              lời cùng ý nghĩa).
+            </ConfigField.Description>
+          </ConfigField>
         </ConfigSection>
       )}
 

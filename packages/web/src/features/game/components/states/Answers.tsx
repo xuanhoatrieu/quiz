@@ -28,6 +28,7 @@ const Answers = ({
   data: {
     question,
     answers,
+    allowOther,
     media,
     time,
     totalPlayer,
@@ -41,6 +42,7 @@ const Answers = ({
 
   const [cooldown, setCooldown] = useState(time)
   const [totalAnswer, setTotalAnswer] = useState(0)
+  const [isSubmitted, setIsSubmitted] = useState(false)
   const lastPopAtRef = useRef(0)
   const { t } = useTranslation()
   const { width } = useScreenSize()
@@ -61,15 +63,19 @@ const Answers = ({
     loop: true,
   })
 
-  const handleSubmit = (answerKeys: number[]) => {
-    if (!player || !gameId) {
+  const handleSubmit = (answerKeys: number[], otherText?: string) => {
+    if (!player || !gameId || isSubmitted) {
       return
     }
+
+    setIsSubmitted(true)
+    const trimmedOther = otherText?.trim()
 
     socket.emit(EVENTS.PLAYER.SELECTED_ANSWER, {
       gameId,
       data: {
         answerKeys,
+        ...(trimmedOther ? { otherText: trimmedOther } : {}),
       },
     })
     sfxPop()
@@ -173,21 +179,24 @@ const Answers = ({
               <span>{cooldown}</span>
             </div>
           )}
-          <div className="flex flex-col items-center rounded-lg bg-black/40 px-4 text-lg font-bold">
-            <span className="translate-y-1 text-sm">
-              {t("game:hud.answers")}
-            </span>
-            <span>
-              {totalAnswer}/{totalPlayer}
-            </span>
-          </div>
+          {!player && (
+            <div className="flex flex-col items-center rounded-lg bg-black/40 px-4 text-lg font-bold">
+              <span className="translate-y-1 text-sm">
+                {t("game:hud.answers")}
+              </span>
+              <span>
+                {totalAnswer}/{totalPlayer}
+              </span>
+            </div>
+          )}
         </div>
 
         <AnswerComponent
           answers={answers}
+          allowOther={allowOther}
           options={options}
           onSubmit={handleSubmit}
-          readOnly={!player}
+          readOnly={!player || isSubmitted}
           fill={showAnswersOnly}
         />
       </div>

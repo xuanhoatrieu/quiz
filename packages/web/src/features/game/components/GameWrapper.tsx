@@ -22,7 +22,7 @@ import type { Status as GameStatus } from "@razzia/web/features/game/utils/creat
 import { useFullscreen } from "@razzia/web/hooks/useFullscreen"
 import clsx from "clsx"
 import { Maximize, Minimize, Users } from "lucide-react"
-import { type PropsWithChildren, useState } from "react"
+import { type PropsWithChildren, useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
@@ -40,7 +40,7 @@ const GameWrapper = ({
   onBack,
   manager,
 }: Props) => {
-  const { isConnected } = useSocket()
+  const { isConnected, connect } = useSocket()
   const { player, gameMode } = usePlayerStore()
   const { players, inviteCode, locked, status } = useManagerStore()
   const { questionStates, setQuestionStates } = useQuestionStore()
@@ -55,6 +55,37 @@ const GameWrapper = ({
   } | null>(null)
   const next = statusName ? MANAGER_SKIP_BTN[statusName] : null
   const isDisabled = skippedStatus !== null && skippedStatus === status
+
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null
+
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator && document.visibilityState === "visible") {
+          wakeLock = await navigator.wakeLock.request("screen")
+        }
+      } catch {
+        /* Ignore unsupported or denied wakeLock */
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        connect()
+        void requestWakeLock()
+      }
+    }
+
+    void requestWakeLock()
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      void wakeLock?.release().catch(() => {
+        /* Ignore */
+      })
+    }
+  }, [connect])
 
   useEvent(EVENTS.GAME.UPDATE_QUESTION, ({ current, total }) => {
     setQuestionStates({

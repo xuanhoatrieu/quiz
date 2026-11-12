@@ -20,8 +20,10 @@ const ResultModalTableRow = ({ playerAnswer }: RowProps) => {
   const { result, questionResult, getPlayerPoints } = useResultModal()
   const { t } = useTranslation()
 
-  const { playerName, answerIds, correct, points } = playerAnswer
-  const hasAnswer = answerIds !== null && answerIds.length > 0
+  const { playerName, answerIds, otherText, correct, points } = playerAnswer
+  const hasAnswerIds = answerIds !== null && answerIds.length > 0
+  const hasOtherText = Boolean(otherText?.trim())
+  const hasAnswer = hasAnswerIds || hasOtherText
 
   const isCorrect = correct ?? isAnswerCorrect(questionResult, answerIds)
   const isEstimation = isEstimationOptions(questionResult.options)
@@ -30,14 +32,14 @@ const ResultModalTableRow = ({ playerAnswer }: RowProps) => {
     <tr>
       <td className="px-5 py-2.5 font-medium">{playerName}</td>
       <td className="px-4 py-2.5">
-        {hasAnswer && isEstimation && (
+        {hasAnswerIds && isEstimation && (
           <span className="bg-accent text-accent-foreground inline-flex rounded-md px-2 py-1 text-xs font-bold">
             {formatValue(answerIds[0])}
           </span>
         )}
         {hasAnswer && !isEstimation && (
           <div className="flex flex-wrap gap-1">
-            {answerIds.map((id) => (
+            {(answerIds ?? []).map((id) => (
               <span
                 key={id}
                 className={clsx(
@@ -51,6 +53,12 @@ const ResultModalTableRow = ({ playerAnswer }: RowProps) => {
                 </span>
               </span>
             ))}
+            {hasOtherText && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-700">
+                <span className="font-bold">✏️ Khác:</span>
+                <span>&ldquo;{otherText}&rdquo;</span>
+              </span>
+            )}
           </div>
         )}
         {!hasAnswer && <span className="text-muted-foreground text-xs">-</span>}

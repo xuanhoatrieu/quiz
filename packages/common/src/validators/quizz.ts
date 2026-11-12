@@ -37,6 +37,7 @@ const questionSchema = z.object({
   note: z.string().optional(),
   media: questionMediaValidator.optional(),
   answers: z.array(z.string().min(1, "errors:quizz.answerEmpty")),
+  allowOther: z.boolean().optional(),
   solutions: z.array(z.number()).optional(),
   cooldown: z
     .number()

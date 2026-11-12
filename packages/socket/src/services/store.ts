@@ -1126,6 +1126,36 @@ export const getResultByIdForOwner = async (
   }
 }
 
+export const updateResultForOwner = async (
+  id: string,
+  ownerId: string,
+  data: GameResult,
+): Promise<GameResult> => {
+  if (!isPostgresEnabled()) {
+    if (!canAccessMemoryResource(memResultOwners, id, ownerId)) {
+      throw notFound("errors:result.notFound")
+    }
+
+    saveFileResult(data)
+
+    return data
+  }
+
+  const sql = getSql()
+  const rows = await sql<PgIdRow[]>`
+    UPDATE results
+    SET data = ${sql.json(toJsonParam(data))}
+    WHERE id = ${id} AND owner_id = ${ownerId}
+    RETURNING id
+  `
+
+  if (rows.length === 0) {
+    throw notFound("errors:result.notFound")
+  }
+
+  return data
+}
+
 export const deleteResultForOwner = async (
   id: string,
   ownerId: string,

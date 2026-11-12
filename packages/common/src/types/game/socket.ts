@@ -4,6 +4,7 @@ import type {
   GameSettings,
   GameUpdateQuestion,
   Player,
+  QuestionAiSynthesis,
   QuizzMode,
 } from "@razzia/common/types/game"
 import type { Status, StatusDataMap } from "@razzia/common/types/game/status"
@@ -94,6 +95,10 @@ export interface ServerToClientEvents {
     timedOut: boolean
   }) => void
   [EVENTS.MANAGER.LOCK_UPDATED]: (_locked: boolean) => void
+  [EVENTS.MANAGER.SURVEY_AI_SYNTHESIS]: (_data: {
+    questionIndex: number
+    aiSynthesis: QuestionAiSynthesis
+  }) => void
 }
 
 type ClientEventValidators = typeof clientEventValidators
