@@ -59,9 +59,10 @@ const SHEET_HEADERS = [
   "Ước lượng (Min|Max|Bước|Sai số)",
   "Giải thích / Ghi chú",
   "Chủ đề nhóm",
+  "Cho phép mục Khác (Tự gõ)",
 ]
 
-const SHEET_COLUMN_WIDTHS = [16, 48, 24, 24, 24, 24, 16, 18, 14, 30, 34, 20]
+const SHEET_COLUMN_WIDTHS = [16, 48, 24, 24, 24, 24, 16, 18, 14, 30, 34, 20, 26]
 
 export const TEMPLATE_SAMPLE_QUIZZ: Quizz = {
   gameMode: QUIZZ_MODES.QUIZ,
@@ -125,27 +126,108 @@ export const TEMPLATE_SAMPLE_QUIZZ: Quizz = {
   ],
 }
 
+export const TEMPLATE_SAMPLE_SURVEY: Quizz = {
+  gameMode: QUIZZ_MODES.SURVEY,
+  subject: "Mẫu Khảo sát Công việc & Định hướng Nghề nghiệp",
+  questions: [
+    {
+      type: QUESTION_TYPES.SINGLE,
+      question:
+        "Hiện tại công việc hoặc vai trò chính của bạn tại đơn vị là gì?",
+      answers: [
+        "Giảng dạy & Nghiên cứu",
+        "Quản lý & Hành chính",
+        "Kỹ thuật & Công nghệ thông tin",
+        "Hỗ trợ sinh viên & Tuyển sinh",
+      ],
+      allowOther: true,
+      solutions: [],
+      cooldown: 5,
+      time: 30,
+      maxPoints: MAX_POINTS,
+      note: "Khảo sát vị trí công tác hiện tại (mục Khác sẽ được AI tự động gom nhóm theo ngữ nghĩa).",
+      category: "Thông tin công việc",
+    },
+    {
+      type: QUESTION_TYPES.MULTI,
+      question:
+        "Những công việc nào đang chiếm nhiều thời gian nhất của bạn trong tuần? (Có thể chọn nhiều mục hoặc tự gõ vào mục Khác)",
+      answers: [
+        "Soạn giáo án & tài liệu chuyên môn",
+        "Báo cáo, thống kê & xử lý hồ sơ",
+        "Họp điều phối & làm việc nhóm",
+        "Tư vấn, giải đáp & hỗ trợ trực tiếp",
+      ],
+      allowOther: true,
+      solutions: [],
+      cooldown: 5,
+      time: 45,
+      maxPoints: MAX_POINTS,
+      options: { scoringMode: SCORING_MODES.BALANCED },
+      note: "Xác định công việc có nhiều người thực hiện nhất trong đơn vị.",
+      category: "Khối lượng công việc",
+    },
+    {
+      type: QUESTION_TYPES.SINGLE,
+      question:
+        "Công cụ hoặc giải pháp nào bạn mong muốn được hỗ trợ nhất để tăng hiệu quả công việc?",
+      answers: [
+        "Trợ lý AI tóm tắt & soạn thảo văn bản",
+        "Phần mềm tự động hóa báo cáo số liệu",
+        "Hệ thống khảo sát & tương tác lớp học",
+        "Kho học liệu & biểu mẫu dùng chung",
+      ],
+      allowOther: true,
+      solutions: [],
+      cooldown: 5,
+      time: 30,
+      maxPoints: MAX_POINTS,
+      note: "Thu thập đề xuất công cụ ưu tiên triển khai.",
+      category: "Nhu cầu hỗ trợ",
+    },
+    {
+      type: QUESTION_TYPES.ESTIMATION,
+      question:
+        "Trung bình mỗi ngày bạn dành bao nhiêu giờ cho các công việc hành chính, tổng hợp dữ liệu?",
+      answers: [],
+      solutions: [],
+      cooldown: 5,
+      time: 25,
+      maxPoints: MAX_POINTS,
+      options: {
+        inputMode: ESTIMATION_INPUT_MODES.SLIDER,
+        min: 0,
+        max: 12,
+        step: 1,
+        margin: 1,
+      },
+      note: "Thống kê số giờ trung bình của toàn bộ người tham gia.",
+      category: "Thời lượng công việc",
+    },
+  ],
+}
+
 const GUIDE_ROWS: Array<Array<string | number>> = [
   ["Cột dữ liệu", "Bắt buộc?", "Giá trị hợp lệ & Ví dụ minh họa"],
   [
     "1. Loại câu hỏi",
     "Khuyến nghị",
-    "Điền 'single' (1 đáp án đúng), 'multi' (nhiều đáp án đúng) hoặc 'estimation' (ước lượng con số). Nếu để trống, hệ thống tự nhận diện single/multi theo cột Đáp án đúng.",
+    "Điền 'single' (chọn 1), 'multi' (chọn nhiều) hoặc 'estimation' (ước lượng con số). Nếu để trống, hệ thống tự nhận diện single/multi.",
   ],
   [
     "2. Câu hỏi",
     "Bắt buộc",
-    "Nội dung câu hỏi hiển thị cho người học (tối thiểu 1 ký tự).",
+    "Nội dung câu hỏi hiển thị cho người tham gia (tối thiểu 1 ký tự).",
   ],
   [
-    "3. Đáp án A .. F. Đáp án D",
+    "3. Đáp án A .. 6. Đáp án D",
     "Bắt buộc với single/multi",
-    "Điền từ 2 đến 4 phương án trả lời. Với câu hỏi 'estimation' (ước lượng số), hãy để trống cả 4 cột đáp án A, B, C, D.",
+    "Điền từ 2 đến 4 phương án trả lời có sẵn. Với câu hỏi 'estimation' (ước lượng số), hãy để trống cả 4 cột đáp án A, B, C, D.",
   ],
   [
     "7. Đáp án đúng",
-    "Bắt buộc",
-    "Với single: điền A, B, C hoặc D (hoặc 1, 2, 3, 4). Với multi: điền các chữ cái cách nhau bởi dấu phẩy, ví dụ: 'A, B, C'. Với estimation: điền con số đáp án chính xác, ví dụ: '100'.",
+    "Bắt buộc với Đố vui (Quiz), để trống với Khảo sát (Survey)",
+    "Với Đố vui (Quiz): điền A, B, C hoặc D (hoặc 'A, B, C' cho multi, con số cho estimation). Với Khảo sát (Survey): ĐỂ TRỐNG cột này vì khảo sát không tính đúng/sai.",
   ],
   [
     "8. Thời gian (giây)",
@@ -165,12 +247,17 @@ const GUIDE_ROWS: Array<Array<string | number>> = [
   [
     "11. Giải thích / Ghi chú",
     "Tùy chọn",
-    "Lời giải thích hoặc ghi chú chuyên môn của giảng viên sau khi công bố đáp án.",
+    "Lời giải thích hoặc ghi chú chuyên môn của giảng viên sau khi công bố kết quả.",
   ],
   [
     "12. Chủ đề nhóm",
     "Tùy chọn",
-    "Nhãn phân nhóm chương/chủ đề của câu hỏi (ví dụ: 'Chương 1', 'Sinh học đại cương').",
+    "Nhãn phân nhóm chương/chủ đề của câu hỏi (ví dụ: 'Thông tin công việc', 'Chương 1').",
+  ],
+  [
+    "13. Cho phép mục Khác (Tự gõ)",
+    "Tùy chọn (single/multi)",
+    "Điền 'Có' (hoặc 'Yes', 'True', '1', 'x') để bật nút '✏️ Khác (Tự gõ vào...)' trên điện thoại người tham gia, kèm AI tự động gom nhóm các câu trả lời cùng ý nghĩa.",
   ],
 ]
 
@@ -214,6 +301,7 @@ const questionToSpreadsheetRow = (
     estimationCell,
     question.note ?? "",
     question.category ?? "",
+    question.allowOther ? "Có" : "",
   ]
 }
 
@@ -242,6 +330,9 @@ export const exportQuizzToXlsxBytes = (quizz: Quizz): Promise<Uint8Array> => {
 export const buildExcelTemplateBytes = (): Promise<Uint8Array> =>
   exportQuizzToXlsxBytes(TEMPLATE_SAMPLE_QUIZZ)
 
+export const buildSurveyExcelTemplateBytes = (): Promise<Uint8Array> =>
+  exportQuizzToXlsxBytes(TEMPLATE_SAMPLE_SURVEY)
+
 export const exportQuizzToJsonString = (quizz: Quizz): string =>
   JSON.stringify(
     {
@@ -255,6 +346,9 @@ export const exportQuizzToJsonString = (quizz: Quizz): string =>
 
 export const buildJsonTemplateString = (): string =>
   exportQuizzToJsonString(TEMPLATE_SAMPLE_QUIZZ)
+
+export const buildSurveyJsonTemplateString = (): string =>
+  exportQuizzToJsonString(TEMPLATE_SAMPLE_SURVEY)
 
 const stripFilenameExtension = (filename: string): string => {
   const base = filename.split(/[\\/]/u).pop() ?? filename
@@ -286,6 +380,7 @@ interface ColumnMapping {
   estimation: number
   note: number
   category: number
+  allowOther: number
 }
 
 const DEFAULT_COLUMN_MAPPING: ColumnMapping = {
@@ -301,6 +396,7 @@ const DEFAULT_COLUMN_MAPPING: ColumnMapping = {
   estimation: 9,
   note: 10,
   category: 11,
+  allowOther: 12,
 }
 
 const detectHeaderMapping = (
@@ -335,6 +431,7 @@ const detectHeaderMapping = (
     estimation: -1,
     note: -1,
     category: -1,
+    allowOther: -1,
   }
 
   tokens.forEach((token, idx) => {
@@ -483,6 +580,20 @@ const detectHeaderMapping = (
         token === "topic")
     ) {
       mapping.category = idx
+
+      return
+    }
+
+    if (
+      mapping.allowOther < 0 &&
+      (token.includes("muc khac") ||
+        token.includes("cho phep") ||
+        token.includes("allow other") ||
+        token.includes("tu go") ||
+        token === "khac" ||
+        token === "other")
+    ) {
+      mapping.allowOther = idx
     }
   })
 
@@ -491,6 +602,21 @@ const detectHeaderMapping = (
 
 const getCell = (row: string[], index: number): string =>
   index >= 0 && index < row.length ? row[index].trim() : ""
+
+const parseAllowOtherCell = (raw: string): boolean => {
+  const token = normalizeHeaderToken(raw)
+
+  return (
+    token === "co" ||
+    token === "yes" ||
+    token === "true" ||
+    token === "1" ||
+    token === "x" ||
+    token === "bat" ||
+    token === "khac" ||
+    token === "allow"
+  )
+}
 
 const parseQuestionTypeAlias = (
   raw: string,
@@ -567,10 +693,10 @@ const buildDefaultEstimationOptions = (
 
 const parseEstimationOptionsCell = (
   raw: string,
-  target: number,
+  target?: number,
 ): { options?: EstimationQuestionOptions; error?: string } => {
   if (raw.trim().length === 0) {
-    return { options: buildDefaultEstimationOptions(target) }
+    return { options: buildDefaultEstimationOptions(target ?? 50) }
   }
 
   const parts = raw
@@ -611,7 +737,7 @@ const parseEstimationOptionsCell = (
     return { error: `Sai số (${margin}) không được âm.` }
   }
 
-  if (target < min || target > max) {
+  if (target !== undefined && (target < min || target > max)) {
     return {
       error: `Đáp án ước lượng (${target}) nằm ngoài khoảng [${min}, ${max}].`,
     }
@@ -654,9 +780,17 @@ const parseChoiceSolutions = (
   compacted: CompactedAnswers,
 ): { solutions?: number[]; error?: string } => {
   const trimmed = rawSolution.trim()
+  const normToken = normalizeHeaderToken(trimmed)
 
-  if (trimmed.length === 0) {
-    return { error: "Thiếu đáp án đúng (hãy điền A, B, C hoặc D)." }
+  if (
+    trimmed.length === 0 ||
+    trimmed === "-" ||
+    normToken === "khao sat" ||
+    normToken === "survey" ||
+    normToken === "khong" ||
+    normToken === "none"
+  ) {
+    return { solutions: [] }
   }
 
   // First check if rawSolution matches one of the answer texts verbatim
@@ -819,11 +953,20 @@ const parseSpreadsheetRows = (
     const note = getCell(row, mapping.note)
     const category = getCell(row, mapping.category)
     const rawSolution = getCell(row, mapping.solution)
+    const allowOther = parseAllowOtherCell(getCell(row, mapping.allowOther))
 
     if (parsedType.type === QUESTION_TYPES.ESTIMATION) {
-      const targetNum = Number(rawSolution.replace(",", "."))
+      const rawEstimation = getCell(row, mapping.estimation)
+      const isSurveyBlankSolution =
+        rawSolution.length === 0 || rawSolution === "-"
+      const targetNum = isSurveyBlankSolution
+        ? undefined
+        : Number(rawSolution.replace(",", "."))
 
-      if (rawSolution.length === 0 || !Number.isFinite(targetNum)) {
+      if (
+        !isSurveyBlankSolution &&
+        (targetNum === undefined || !Number.isFinite(targetNum))
+      ) {
         errors.push({
           row: excelRowNumber,
           message:
@@ -833,10 +976,17 @@ const parseSpreadsheetRows = (
         continue
       }
 
-      const estResult = parseEstimationOptionsCell(
-        getCell(row, mapping.estimation),
-        targetNum,
-      )
+      if (isSurveyBlankSolution && rawEstimation.trim().length === 0) {
+        errors.push({
+          row: excelRowNumber,
+          message:
+            "Câu hỏi ước lượng (estimation) cần điền 'Đáp án đúng' hoặc cấu hình 'Ước lượng (Min|Max|Bước|Sai số)'.",
+        })
+
+        continue
+      }
+
+      const estResult = parseEstimationOptionsCell(rawEstimation, targetNum)
 
       if (!estResult.options) {
         errors.push({
@@ -851,7 +1001,7 @@ const parseSpreadsheetRows = (
         type: QUESTION_TYPES.ESTIMATION,
         question: questionText,
         answers: [],
-        solutions: [targetNum],
+        solutions: targetNum !== undefined ? [targetNum] : [],
         cooldown: 5,
         time,
         maxPoints,
@@ -923,6 +1073,7 @@ const parseSpreadsheetRows = (
       question: questionText,
       answers: compacted.answers,
       solutions: solutionParsed.solutions,
+      ...(allowOther ? { allowOther: true } : {}),
       cooldown: 5,
       time,
       maxPoints,
@@ -941,9 +1092,13 @@ const parseSpreadsheetRows = (
     })
   }
 
+  const isSurveySheet =
+    questions.length > 0 &&
+    questions.some((q) => (q.solutions?.length ?? 0) === 0)
+
   return {
     subject,
-    gameMode: QUIZZ_MODES.QUIZ,
+    gameMode: isSurveySheet ? QUIZZ_MODES.SURVEY : QUIZZ_MODES.QUIZ,
     questions,
     errors,
   }

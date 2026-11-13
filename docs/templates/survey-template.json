@@ -1,0 +1,78 @@
+{
+  "gameMode": "survey",
+  "subject": "Mẫu Khảo sát Công việc & Định hướng Nghề nghiệp",
+  "questions": [
+    {
+      "type": "single",
+      "question": "Hiện tại công việc hoặc vai trò chính của bạn tại đơn vị là gì?",
+      "answers": [
+        "Giảng dạy & Nghiên cứu",
+        "Quản lý & Hành chính",
+        "Kỹ thuật & Công nghệ thông tin",
+        "Hỗ trợ sinh viên & Tuyển sinh"
+      ],
+      "allowOther": true,
+      "solutions": [],
+      "cooldown": 5,
+      "time": 30,
+      "maxPoints": 1,
+      "note": "Khảo sát vị trí công tác hiện tại (mục Khác sẽ được AI tự động gom nhóm theo ngữ nghĩa).",
+      "category": "Thông tin công việc"
+    },
+    {
+      "type": "multi",
+      "question": "Những công việc nào đang chiếm nhiều thời gian nhất của bạn trong tuần? (Có thể chọn nhiều mục hoặc tự gõ vào mục Khác)",
+      "answers": [
+        "Soạn giáo án & tài liệu chuyên môn",
+        "Báo cáo, thống kê & xử lý hồ sơ",
+        "Họp điều phối & làm việc nhóm",
+        "Tư vấn, giải đáp & hỗ trợ trực tiếp"
+      ],
+      "allowOther": true,
+      "solutions": [],
+      "cooldown": 5,
+      "time": 45,
+      "maxPoints": 1,
+      "options": {
+        "scoringMode": "balanced"
+      },
+      "note": "Xác định công việc có nhiều người thực hiện nhất trong đơn vị.",
+      "category": "Khối lượng công việc"
+    },
+    {
+      "type": "single",
+      "question": "Công cụ hoặc giải pháp nào bạn mong muốn được hỗ trợ nhất để tăng hiệu quả công việc?",
+      "answers": [
+        "Trợ lý AI tóm tắt & soạn thảo văn bản",
+        "Phần mềm tự động hóa báo cáo số liệu",
+        "Hệ thống khảo sát & tương tác lớp học",
+        "Kho học liệu & biểu mẫu dùng chung"
+      ],
+      "allowOther": true,
+      "solutions": [],
+      "cooldown": 5,
+      "time": 30,
+      "maxPoints": 1,
+      "note": "Thu thập đề xuất công cụ ưu tiên triển khai.",
+      "category": "Nhu cầu hỗ trợ"
+    },
+    {
+      "type": "estimation",
+      "question": "Trung bình mỗi ngày bạn dành bao nhiêu giờ cho các công việc hành chính, tổng hợp dữ liệu?",
+      "answers": [],
+      "solutions": [],
+      "cooldown": 5,
+      "time": 25,
+      "maxPoints": 1,
+      "options": {
+        "inputMode": "slider",
+        "min": 0,
+        "max": 12,
+        "step": 1,
+        "margin": 1
+      },
+      "note": "Thống kê số giờ trung bình của toàn bộ người tham gia.",
+      "category": "Thời lượng công việc"
+    }
+  ]
+}

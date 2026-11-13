@@ -7,11 +7,14 @@ import {
 import {
   buildExcelTemplateBytes,
   buildJsonTemplateString,
+  buildSurveyExcelTemplateBytes,
+  buildSurveyJsonTemplateString,
   exportQuizzToXlsxBytes,
   MAX_XLSX_BYTES,
   parseImportedQuizzFile,
   readXlsxWorkbook,
   TEMPLATE_SAMPLE_QUIZZ,
+  TEMPLATE_SAMPLE_SURVEY,
 } from "@razzia/common/quizz-io"
 import { assertSafeXml } from "@razzia/common/quizz-io/xlsx"
 import type { Quizz } from "@razzia/common/types/game"
@@ -182,5 +185,40 @@ describe("quizz-io Excel (.xlsx), CSV & JSON templates and smart importer", () =
     const result = await parseImportedQuizzFile("huge.xlsx", oversized)
     expect(result.questions).toHaveLength(0)
     expect(result.errors[0].message).toContain("5 MB")
+  })
+
+  it("generates and round-trips Survey Excel (.xlsx) and JSON templates with allowOther enabled", async () => {
+    const surveyXlsxBytes = await buildSurveyExcelTemplateBytes()
+    const parsedXlsx = await parseImportedQuizzFile(
+      "khao-sat-cong-viec.xlsx",
+      surveyXlsxBytes,
+    )
+
+    expect(parsedXlsx.errors).toEqual([])
+    expect(parsedXlsx.gameMode).toBe(QUIZZ_MODES.SURVEY)
+    expect(parsedXlsx.questions).toHaveLength(
+      TEMPLATE_SAMPLE_SURVEY.questions.length,
+    )
+    expect(parsedXlsx.questions[0].allowOther).toBe(true)
+    expect(parsedXlsx.questions[0].solutions).toEqual([])
+    expect(parsedXlsx.questions[1].type).toBe(QUESTION_TYPES.MULTI)
+    expect(parsedXlsx.questions[1].allowOther).toBe(true)
+    expect(parsedXlsx.questions[3].type).toBe(QUESTION_TYPES.ESTIMATION)
+
+    const validatedXlsx = quizzValidator.safeParse({
+      subject: parsedXlsx.subject,
+      gameMode: parsedXlsx.gameMode,
+      questions: parsedXlsx.questions,
+    })
+    expect(validatedXlsx.success).toBe(true)
+
+    const surveyJson = buildSurveyJsonTemplateString()
+    const parsedJson = await parseImportedQuizzFile(
+      "survey-template.json",
+      encoder.encode(surveyJson),
+    )
+    expect(parsedJson.errors).toEqual([])
+    expect(parsedJson.gameMode).toBe(QUIZZ_MODES.SURVEY)
+    expect(parsedJson.questions[0].allowOther).toBe(true)
   })
 })

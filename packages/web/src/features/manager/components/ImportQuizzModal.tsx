@@ -1,6 +1,9 @@
+import { QUIZZ_MODES } from "@razzia/common/constants"
 import {
   buildExcelTemplateBytes,
   buildJsonTemplateString,
+  buildSurveyExcelTemplateBytes,
+  buildSurveyJsonTemplateString,
   parseImportedQuizzFile,
   type QuizzImportResult,
 } from "@razzia/common/quizz-io"
@@ -115,6 +118,23 @@ const ImportQuizzModal = ({
     downloadTextAsFile(
       buildJsonTemplateString(),
       "quiz-template.json",
+      "application/json",
+    )
+  }
+
+  const handleDownloadSurveyExcelTemplate = async () => {
+    try {
+      const bytes = await buildSurveyExcelTemplateBytes()
+      downloadBytesAsFile(bytes, "survey-template.xlsx", XLSX_MIME_TYPE)
+    } catch {
+      toast.error(t("errors:route.description"))
+    }
+  }
+
+  const handleDownloadSurveyJsonTemplate = () => {
+    downloadTextAsFile(
+      buildSurveyJsonTemplateString(),
+      "survey-template.json",
       "application/json",
     )
   }
@@ -243,23 +263,44 @@ const ImportQuizzModal = ({
             {t("manager:importModal.subtitle")}
           </RadixDialog.Description>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void handleDownloadExcelTemplate()}
-              className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
-            >
-              <FileSpreadsheet className="size-4 shrink-0" />
-              {t("manager:importModal.downloadExcelTemplate")}
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadJsonTemplate}
-              className="border-accent bg-muted/60 text-foreground hover:bg-accent flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
-            >
-              <FileJson className="size-4 shrink-0" />
-              {t("manager:importModal.downloadJsonTemplate")}
-            </button>
+          <div className="mt-3 flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleDownloadExcelTemplate()}
+                className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+              >
+                <FileSpreadsheet className="size-4 shrink-0" />
+                {t("manager:importModal.downloadExcelTemplate")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadJsonTemplate}
+                className="border-accent bg-muted/60 text-foreground hover:bg-accent flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+              >
+                <FileJson className="size-4 shrink-0" />
+                {t("manager:importModal.downloadJsonTemplate")}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleDownloadSurveyExcelTemplate()}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-700 transition-colors hover:bg-violet-500/15"
+              >
+                <FileSpreadsheet className="size-4 shrink-0" />
+                <span>Tải mẫu Excel Khảo sát (.xlsx)</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadSurveyJsonTemplate}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-violet-500/25 bg-violet-500/5 px-3 py-2 text-xs font-semibold text-violet-700 transition-colors hover:bg-violet-500/15"
+              >
+                <FileJson className="size-4 shrink-0" />
+                <span>Tải mẫu JSON Khảo sát (.json)</span>
+              </button>
+            </div>
           </div>
 
           <div
@@ -311,11 +352,18 @@ const ImportQuizzModal = ({
 
               {validQuestions.length > 0 && (
                 <div className="border-primary/25 bg-primary/5 rounded-lg border p-2.5">
-                  <div className="text-primary flex items-center gap-1.5 text-xs font-bold">
-                    <CheckCircle2 className="size-4 shrink-0" />
-                    {t("manager:importModal.validCount", {
-                      count: validQuestions.length,
-                    })}
+                  <div className="text-primary flex items-center justify-between gap-1.5 text-xs font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="size-4 shrink-0" />
+                      {t("manager:importModal.validCount", {
+                        count: validQuestions.length,
+                      })}
+                    </div>
+                    <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                      {parsedResult.gameMode === QUIZZ_MODES.SURVEY
+                        ? "Chế độ: Khảo sát"
+                        : "Chế độ: Đố vui"}
+                    </span>
                   </div>
                   <ul className="mt-1.5 max-h-28 space-y-1 overflow-auto text-xs">
                     {validQuestions.slice(0, 6).map((q, idx) => (
@@ -326,6 +374,11 @@ const ImportQuizzModal = ({
                         <span className="bg-primary/15 text-primary shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase">
                           {q.type}
                         </span>
+                        {q.allowOther && (
+                          <span className="shrink-0 rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">
+                            +Khác
+                          </span>
+                        )}
                         <span className="truncate">
                           {idx + 1}. {q.question}
                         </span>
